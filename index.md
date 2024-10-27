@@ -81,6 +81,8 @@
     <button onclick="startGame(5)">Hard (5×5)</button>
 </div>
 
+<!--
+
 <!-- ゲーム画面 -->
 <div class="game-screen" id="game-screen">
     <div class="timer" id="timer">経過時間: 00:00</div>
