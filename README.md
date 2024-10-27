@@ -3,8 +3,7 @@ This is a simple 15 Puzzle game implemented in HTML, CSS, and JavaScript.
 You can play it by sliding tiles to arrange them in ascending order from 1 to 15.
 
 # 内容：
-  ## Under Construction!!
-
+## [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&duration=1500&pause=2000&color=%23800080&center=true&vCenter=true&width=550&lines=;Under+Construction!!)](https://git.io/typing-svg)
 <!--
 #### URLはこちらから https://pavlov-dog1.github.io/15-puzzle-game/
 -->
