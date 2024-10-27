@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>15パズル</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-template-rows: repeat(4, 100px);
+            gap: 5px;
+        }
+        .tile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        .empty {
+            background-color: #ddd;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+
+<div class="grid" id="puzzle">
+    <!-- タイルをJavaScriptで動的に追加します -->
+</div>
+
+<script>
+    const gridSize = 4;
+    const puzzle = document.getElementById('puzzle');
+    let tiles = [];
+    let emptyTileIndex = gridSize * gridSize - 1; // 最後のタイルを空白に
+
+    // 初期配置を設定する関数
+    function initializePuzzle() {
+        tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1).concat([null]);
+        tiles = shuffle(tiles); // タイルをシャッフル
+        renderPuzzle();
+    }
+
+    // パズルを表示する関数
+    function renderPuzzle() {
+        puzzle.innerHTML = '';
+        tiles.forEach((tile, index) => {
+            const tileDiv = document.createElement('div');
+            tileDiv.classList.add('tile');
+            if (tile === null) {
+                tileDiv.classList.add('empty');
+            } else {
+                tileDiv.textContent = tile;
+                tileDiv.addEventListener('click', () => moveTile(index));
+            }
+            puzzle.appendChild(tileDiv);
+        });
+    }
+
+    // タイルをシャッフルする関数（Fisher-Yates Shuffle）
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // タイルを動かす関数
+    function moveTile(index) {
+        const emptyRow = Math.floor(emptyTileIndex / gridSize);
+        const emptyCol = emptyTileIndex % gridSize;
+        const tileRow = Math.floor(index / gridSize);
+        const tileCol = index % gridSize;
+
+        // タイルが空白タイルに隣接しているか確認
+        if ((Math.abs(emptyRow - tileRow) === 1 && emptyCol === tileCol) ||
+            (Math.abs(emptyCol - tileCol) === 1 && emptyRow === tileRow)) {
+            [tiles[emptyTileIndex], tiles[index]] = [tiles[index], tiles[emptyTileIndex]];
+            emptyTileIndex = index;
+            renderPuzzle();
+            checkWin();
+        }
+    }
+
+    // 勝利条件を確認する関数
+    function checkWin() {
+        const isComplete = tiles.slice(0, -1).every((tile, index) => tile === index + 1);
+        if (isComplete) {
+            alert('おめでとうございます！15パズルをクリアしました！');
+        }
+    }
+
+    initializePuzzle();
+</script>
+
+</body>
+</html>
