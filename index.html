@@ -33,25 +33,66 @@
             background-color: #ddd;
             cursor: default;
         }
+        .timer {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        .retry-btn {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
 
+<div class="timer" id="timer">経過時間: 00:00</div>
 <div class="grid" id="puzzle">
     <!-- タイルをJavaScriptで動的に追加します -->
 </div>
+<button class="retry-btn" id="retry-btn" onclick="retry()">再挑戦</button>
 
 <script>
     const gridSize = 4;
     const puzzle = document.getElementById('puzzle');
+    const timerElement = document.getElementById('timer');
+    const retryBtn = document.getElementById('retry-btn');
     let tiles = [];
-    let emptyTileIndex = gridSize * gridSize - 1; // 最後のタイルを空白に
+    let emptyTileIndex = gridSize * gridSize - 1;
+    let startTime = null;
+    let timerInterval = null;
 
     // 初期配置を設定する関数
     function initializePuzzle() {
         tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1).concat([null]);
         tiles = shuffle(tiles); // タイルをシャッフル
         renderPuzzle();
+        resetTimer();
+        retryBtn.style.display = 'none'; // 再挑戦ボタンを非表示
+    }
+
+    // タイマーをリセットする関数
+    function resetTimer() {
+        clearInterval(timerInterval);
+        startTime = null;
+        timerElement.textContent = "経過時間: 00:00";
+    }
+
+    // タイマーをスタートする関数
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            timerElement.textContent = `経過時間: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
     }
 
     // パズルを表示する関数
@@ -81,10 +122,10 @@
 
     // タイルを移動するか試みる関数
     function tryMoveTile(index) {
+        if (!startTime) startTimer(); // 最初のタップでタイマーをスタート
         const row = Math.floor(index / gridSize);
         const col = index % gridSize;
 
-        // 周囲4方向（上、下、左、右）を確認し、空白がある方向に移動
         if (row > 0 && tiles[index - gridSize] === null) {
             moveTile(index, index - gridSize); // 上に移動
         } else if (row < gridSize - 1 && tiles[index + gridSize] === null) {
@@ -108,8 +149,15 @@
     function checkWin() {
         const isComplete = tiles.slice(0, -1).every((tile, index) => tile === index + 1);
         if (isComplete) {
-            alert('おめでとうございます！15パズルをクリアしました！');
+            clearInterval(timerInterval); // クリア時にタイマーを停止
+            alert(`おめでとうございます！15パズルをクリアしました！\nクリアタイム: ${timerElement.textContent.replace('経過時間: ', '')}`);
+            retryBtn.style.display = 'block'; // クリア時に再挑戦ボタンを表示
         }
+    }
+
+    // 再挑戦ボタンを押したときの関数
+    function retry() {
+        initializePuzzle(); // 初期状態に戻す
     }
 
     initializePuzzle();
