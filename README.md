@@ -2,6 +2,8 @@
 This is a simple 15 Puzzle game implemented in HTML, CSS, and JavaScript.
 You can play it by sliding tiles to arrange them in ascending order from 1 to 15.
 
+# 内容：
+  ## Under Construction!!
 
 <!--
 #### URLはこちらから https://pavlov-dog1.github.io/15-puzzle-game/
