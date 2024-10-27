@@ -68,6 +68,10 @@
 </head>
 <body>
 
+
+
+<!--
+
 <!-- ホーム画面 -->
 <div class="home-screen visible" id="home-screen">
     <h1>15パズルへようこそ！</h1>
