@@ -33,12 +33,14 @@
             background-color: #ddd;
             cursor: default;
         }
-        .controls {
-            margin-top: 20px;
+        .control-btns {
             display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 10px;
+            margin-top: 10px;
         }
-        .control-btn {
+        .control-btns button {
             padding: 10px 20px;
             font-size: 1.2em;
             cursor: pointer;
@@ -46,6 +48,10 @@
             color: white;
             border: none;
             border-radius: 5px;
+        }
+        .disabled {
+            background-color: #bbb;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -55,11 +61,13 @@
     <!-- タイルをJavaScriptで動的に追加します -->
 </div>
 
-<div class="controls">
-    <button class="control-btn" onclick="move('up')">↑ 上</button>
-    <button class="control-btn" onclick="move('down')">↓ 下</button>
-    <button class="control-btn" onclick="move('left')">← 左</button>
-    <button class="control-btn" onclick="move('right')">→ 右</button>
+<div class="control-btns">
+    <button id="up-btn" onclick="move('up')">↑ 上</button>
+    <div style="display: flex; gap: 10px;">
+        <button id="left-btn" onclick="move('left')">← 左</button>
+        <button id="right-btn" onclick="move('right')">→ 右</button>
+    </div>
+    <button id="down-btn" onclick="move('down')">↓ 下</button>
 </div>
 
 <script>
@@ -104,36 +112,49 @@
     // タイルを選択する関数
     function selectTile(index) {
         selectedTileIndex = index;
+        updateControlButtons();
+    }
+
+    // 移動ボタンを更新する関数
+    function updateControlButtons() {
+        const row = Math.floor(selectedTileIndex / gridSize);
+        const col = selectedTileIndex % gridSize;
+
+        document.getElementById('up-btn').classList.toggle('disabled', row === 0 || tiles[selectedTileIndex - gridSize] !== null);
+        document.getElementById('down-btn').classList.toggle('disabled', row === gridSize - 1 || tiles[selectedTileIndex + gridSize] !== null);
+        document.getElementById('left-btn').classList.toggle('disabled', col === 0 || tiles[selectedTileIndex - 1] !== null);
+        document.getElementById('right-btn').classList.toggle('disabled', col === gridSize - 1 || tiles[selectedTileIndex + 1] !== null);
     }
 
     // 移動ボタン用の関数
     function move(direction) {
         if (selectedTileIndex === null) return;
-        
+
+        let targetIndex = null;
         const row = Math.floor(selectedTileIndex / gridSize);
         const col = selectedTileIndex % gridSize;
-        let targetIndex = null;
 
         switch (direction) {
             case 'up':
-                if (row > 0) targetIndex = selectedTileIndex - gridSize;
+                if (row > 0 && tiles[selectedTileIndex - gridSize] === null) targetIndex = selectedTileIndex - gridSize;
                 break;
             case 'down':
-                if (row < gridSize - 1) targetIndex = selectedTileIndex + gridSize;
+                if (row < gridSize - 1 && tiles[selectedTileIndex + gridSize] === null) targetIndex = selectedTileIndex + gridSize;
                 break;
             case 'left':
-                if (col > 0) targetIndex = selectedTileIndex - 1;
+                if (col > 0 && tiles[selectedTileIndex - 1] === null) targetIndex = selectedTileIndex - 1;
                 break;
             case 'right':
-                if (col < gridSize - 1) targetIndex = selectedTileIndex + 1;
+                if (col < gridSize - 1 && tiles[selectedTileIndex + 1] === null) targetIndex = selectedTileIndex + 1;
                 break;
         }
 
-        if (targetIndex !== null && tiles[targetIndex] === null) {
+        if (targetIndex !== null) {
             [tiles[selectedTileIndex], tiles[targetIndex]] = [tiles[targetIndex], tiles[selectedTileIndex]];
             emptyTileIndex = selectedTileIndex;
             selectedTileIndex = targetIndex;
             renderPuzzle();
+            updateControlButtons();
             checkWin();
         }
     }
