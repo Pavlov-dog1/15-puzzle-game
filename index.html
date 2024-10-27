@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -33,26 +33,6 @@
             background-color: #ddd;
             cursor: default;
         }
-        .control-btns {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .control-btns button {
-            padding: 10px 20px;
-            font-size: 1.2em;
-            cursor: pointer;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        .disabled {
-            background-color: #bbb;
-            cursor: not-allowed;
-        }
     </style>
 </head>
 <body>
@@ -61,21 +41,11 @@
     <!-- タイルをJavaScriptで動的に追加します -->
 </div>
 
-<div class="control-btns">
-    <button id="up-btn" onclick="move('up')">↑ 上</button>
-    <div style="display: flex; gap: 10px;">
-        <button id="left-btn" onclick="move('left')">← 左</button>
-        <button id="right-btn" onclick="move('right')">→ 右</button>
-    </div>
-    <button id="down-btn" onclick="move('down')">↓ 下</button>
-</div>
-
 <script>
     const gridSize = 4;
     const puzzle = document.getElementById('puzzle');
     let tiles = [];
     let emptyTileIndex = gridSize * gridSize - 1; // 最後のタイルを空白に
-    let selectedTileIndex = null; // 現在選択されているタイルのインデックス
 
     // 初期配置を設定する関数
     function initializePuzzle() {
@@ -94,7 +64,7 @@
                 tileDiv.classList.add('empty');
             } else {
                 tileDiv.textContent = tile;
-                tileDiv.addEventListener('click', () => selectTile(index));
+                tileDiv.addEventListener('click', () => tryMoveTile(index));
             }
             puzzle.appendChild(tileDiv);
         });
@@ -109,54 +79,29 @@
         return array;
     }
 
-    // タイルを選択する関数
-    function selectTile(index) {
-        selectedTileIndex = index;
-        updateControlButtons();
+    // タイルを移動するか試みる関数
+    function tryMoveTile(index) {
+        const row = Math.floor(index / gridSize);
+        const col = index % gridSize;
+
+        // 周囲4方向（上、下、左、右）を確認し、空白がある方向に移動
+        if (row > 0 && tiles[index - gridSize] === null) {
+            moveTile(index, index - gridSize); // 上に移動
+        } else if (row < gridSize - 1 && tiles[index + gridSize] === null) {
+            moveTile(index, index + gridSize); // 下に移動
+        } else if (col > 0 && tiles[index - 1] === null) {
+            moveTile(index, index - 1); // 左に移動
+        } else if (col < gridSize - 1 && tiles[index + 1] === null) {
+            moveTile(index, index + 1); // 右に移動
+        }
     }
 
-    // 移動ボタンを更新する関数
-    function updateControlButtons() {
-        const row = Math.floor(selectedTileIndex / gridSize);
-        const col = selectedTileIndex % gridSize;
-
-        document.getElementById('up-btn').classList.toggle('disabled', row === 0 || tiles[selectedTileIndex - gridSize] !== null);
-        document.getElementById('down-btn').classList.toggle('disabled', row === gridSize - 1 || tiles[selectedTileIndex + gridSize] !== null);
-        document.getElementById('left-btn').classList.toggle('disabled', col === 0 || tiles[selectedTileIndex - 1] !== null);
-        document.getElementById('right-btn').classList.toggle('disabled', col === gridSize - 1 || tiles[selectedTileIndex + 1] !== null);
-    }
-
-    // 移動ボタン用の関数
-    function move(direction) {
-        if (selectedTileIndex === null) return;
-
-        let targetIndex = null;
-        const row = Math.floor(selectedTileIndex / gridSize);
-        const col = selectedTileIndex % gridSize;
-
-        switch (direction) {
-            case 'up':
-                if (row > 0 && tiles[selectedTileIndex - gridSize] === null) targetIndex = selectedTileIndex - gridSize;
-                break;
-            case 'down':
-                if (row < gridSize - 1 && tiles[selectedTileIndex + gridSize] === null) targetIndex = selectedTileIndex + gridSize;
-                break;
-            case 'left':
-                if (col > 0 && tiles[selectedTileIndex - 1] === null) targetIndex = selectedTileIndex - 1;
-                break;
-            case 'right':
-                if (col < gridSize - 1 && tiles[selectedTileIndex + 1] === null) targetIndex = selectedTileIndex + 1;
-                break;
-        }
-
-        if (targetIndex !== null) {
-            [tiles[selectedTileIndex], tiles[targetIndex]] = [tiles[targetIndex], tiles[selectedTileIndex]];
-            emptyTileIndex = selectedTileIndex;
-            selectedTileIndex = targetIndex;
-            renderPuzzle();
-            updateControlButtons();
-            checkWin();
-        }
+    // タイルを実際に移動する関数
+    function moveTile(fromIndex, toIndex) {
+        [tiles[fromIndex], tiles[toIndex]] = [tiles[toIndex], tiles[fromIndex]];
+        emptyTileIndex = fromIndex;
+        renderPuzzle();
+        checkWin();
     }
 
     // 勝利条件を確認する関数
