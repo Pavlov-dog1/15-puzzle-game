@@ -2,13 +2,14 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>15パズル</title>
     <style>
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
@@ -32,6 +33,20 @@
             background-color: #ddd;
             cursor: default;
         }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .control-btn {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -40,11 +55,19 @@
     <!-- タイルをJavaScriptで動的に追加します -->
 </div>
 
+<div class="controls">
+    <button class="control-btn" onclick="move('up')">↑ 上</button>
+    <button class="control-btn" onclick="move('down')">↓ 下</button>
+    <button class="control-btn" onclick="move('left')">← 左</button>
+    <button class="control-btn" onclick="move('right')">→ 右</button>
+</div>
+
 <script>
     const gridSize = 4;
     const puzzle = document.getElementById('puzzle');
     let tiles = [];
     let emptyTileIndex = gridSize * gridSize - 1; // 最後のタイルを空白に
+    let selectedTileIndex = null; // 現在選択されているタイルのインデックス
 
     // 初期配置を設定する関数
     function initializePuzzle() {
@@ -63,7 +86,7 @@
                 tileDiv.classList.add('empty');
             } else {
                 tileDiv.textContent = tile;
-                tileDiv.addEventListener('click', () => moveTile(index));
+                tileDiv.addEventListener('click', () => selectTile(index));
             }
             puzzle.appendChild(tileDiv);
         });
@@ -78,18 +101,38 @@
         return array;
     }
 
-    // タイルを動かす関数
-    function moveTile(index) {
-        const emptyRow = Math.floor(emptyTileIndex / gridSize);
-        const emptyCol = emptyTileIndex % gridSize;
-        const tileRow = Math.floor(index / gridSize);
-        const tileCol = index % gridSize;
+    // タイルを選択する関数
+    function selectTile(index) {
+        selectedTileIndex = index;
+    }
 
-        // タイルが空白タイルに隣接しているか確認
-        if ((Math.abs(emptyRow - tileRow) === 1 && emptyCol === tileCol) ||
-            (Math.abs(emptyCol - tileCol) === 1 && emptyRow === tileRow)) {
-            [tiles[emptyTileIndex], tiles[index]] = [tiles[index], tiles[emptyTileIndex]];
-            emptyTileIndex = index;
+    // 移動ボタン用の関数
+    function move(direction) {
+        if (selectedTileIndex === null) return;
+        
+        const row = Math.floor(selectedTileIndex / gridSize);
+        const col = selectedTileIndex % gridSize;
+        let targetIndex = null;
+
+        switch (direction) {
+            case 'up':
+                if (row > 0) targetIndex = selectedTileIndex - gridSize;
+                break;
+            case 'down':
+                if (row < gridSize - 1) targetIndex = selectedTileIndex + gridSize;
+                break;
+            case 'left':
+                if (col > 0) targetIndex = selectedTileIndex - 1;
+                break;
+            case 'right':
+                if (col < gridSize - 1) targetIndex = selectedTileIndex + 1;
+                break;
+        }
+
+        if (targetIndex !== null && tiles[targetIndex] === null) {
+            [tiles[selectedTileIndex], tiles[targetIndex]] = [tiles[targetIndex], tiles[selectedTileIndex]];
+            emptyTileIndex = selectedTileIndex;
+            selectedTileIndex = targetIndex;
             renderPuzzle();
             checkWin();
         }
