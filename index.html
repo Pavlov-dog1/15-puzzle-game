@@ -13,6 +13,7 @@
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
+            background-color: #f0f8ff; /* 柔らかな背景色 */
         }
         .home-screen, .game-screen {
             display: none;
@@ -20,50 +21,38 @@
         .visible {
             display: block;
         }
-        .grid {
-            display: grid;
-            gap: 5px;
+        .home-screen {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        .tile {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .home-screen h1 {
+            color: #333;
             font-size: 2em;
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
         }
-        .empty {
-            background-color: #ddd;
-            cursor: default;
+        .home-screen p {
+            font-size: 1.2em;
+            color: #666;
         }
-        .timer {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-        }
-        .control-btns {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .control-btns button, .home-screen button {
+        .home-screen button {
             padding: 10px 20px;
             font-size: 1.2em;
+            margin: 10px;
             cursor: pointer;
-            background-color: #2196F3;
+            background-color: #ff8c00;
             color: white;
             border: none;
             border-radius: 5px;
+            transition: background-color 0.3s ease;
         }
-        .retry-btn {
-            display: none;
-            margin-top: 20px;
+        .home-screen button:hover {
+            background-color: #ffa500;
         }
         .author {
+            margin-top: 15px;
             font-size: 0.9em;
-            margin-top: 20px;
             color: #555;
         }
     </style>
@@ -77,24 +66,12 @@
     <button onclick="startGame(3)">Easy (3×3)</button>
     <button onclick="startGame(4)">Normal (4×4)</button>
     <button onclick="startGame(5)">Hard (5×5)</button>
-
     <!-- 作成者の名前を表示 -->
     <div class="author">
         This "15 Puzzle Game" was developed with the support of ChatGPT. Created by パブロフの犬.
     </div>
 </div>
 
-<!-- ゲーム画面 -->
-<div class="game-screen" id="game-screen">
-    <div class="timer" id="timer">経過時間: 00:00</div>
-    <div class="grid" id="puzzle">
-        <!-- タイルをJavaScriptで動的に追加します -->
-    </div>
-    <button class="retry-btn" id="retry-btn" onclick="retry()">再挑戦</button>
-    <div class="control-btns">
-        <button onclick="goToHome()">ホームへ戻る</button>
-    </div>
-</div>
 
 <script>
     const homeScreen = document.getElementById('home-screen');
