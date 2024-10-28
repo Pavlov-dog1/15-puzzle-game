@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>15パズル</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-template-rows: repeat(4, 100px);
+            gap: 5px;
+        }
+        .tile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        .empty {
+            background-color: #ddd;
+            cursor: default;
+        }
+        .control-btns {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .control-btns button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .disabled {
+            background-color: #bbb;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<div class="grid" id="puzzle">
+    <!-- タイルをJavaScriptで動的に追加します -->
+</div>
+
+<div class="control-btns">
+    <button id="up-btn" onclick="move('up')">↑ 上</button>
+    <div style="display: flex; gap: 10px;">
+        <button id="left-btn" onclick="move('left')">← 左</button>
+        <button id="right-btn" onclick="move('right')">→ 右</button>
+    </div>
+    <button id="down-btn" onclick="move('down')">↓ 下</button>
+</div>
+
+<script>
+    const gridSize = 4;
+    const puzzle = document.getElementById('puzzle');
+    let tiles = [];
+    let emptyTileIndex = gridSize * gridSize - 1; // 最後のタイルを空白に
+    let selectedTileIndex = null; // 現在選択されているタイルのインデックス
+
+    // 初期配置を設定する関数
+    function initializePuzzle() {
+        tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1).concat([null]);
+        tiles = shuffle(tiles); // タイルをシャッフル
+        renderPuzzle();
+    }
+
+    // パズルを表示する関数
+    function renderPuzzle() {
+        puzzle.innerHTML = '';
+        tiles.forEach((tile, index) => {
+            const tileDiv = document.createElement('div');
+            tileDiv.classList.add('tile');
+            if (tile === null) {
+                tileDiv.classList.add('empty');
+            } else {
+                tileDiv.textContent = tile;
+                tileDiv.addEventListener('click', () => selectTile(index));
+            }
+            puzzle.appendChild(tileDiv);
+        });
+    }
+
+    // タイルをシャッフルする関数（Fisher-Yates Shuffle）
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // タイルを選択する関数
+    function selectTile(index) {
+        selectedTileIndex = index;
+        updateControlButtons();
+    }
+
+    // 移動ボタンを更新する関数
+    function updateControlButtons() {
+        const row = Math.floor(selectedTileIndex / gridSize);
+        const col = selectedTileIndex % gridSize;
+
+        document.getElementById('up-btn').classList.toggle('disabled', row === 0 || tiles[selectedTileIndex - gridSize] !== null);
+        document.getElementById('down-btn').classList.toggle('disabled', row === gridSize - 1 || tiles[selectedTileIndex + gridSize] !== null);
+        document.getElementById('left-btn').classList.toggle('disabled', col === 0 || tiles[selectedTileIndex - 1] !== null);
+        document.getElementById('right-btn').classList.toggle('disabled', col === gridSize - 1 || tiles[selectedTileIndex + 1] !== null);
+    }
+
+    // 移動ボタン用の関数
+    function move(direction) {
+        if (selectedTileIndex === null) return;
+
+        let targetIndex = null;
+        const row = Math.floor(selectedTileIndex / gridSize);
+        const col = selectedTileIndex % gridSize;
+
+        switch (direction) {
+            case 'up':
+                if (row > 0 && tiles[selectedTileIndex - gridSize] === null) targetIndex = selectedTileIndex - gridSize;
+                break;
+            case 'down':
+                if (row < gridSize - 1 && tiles[selectedTileIndex + gridSize] === null) targetIndex = selectedTileIndex + gridSize;
+                break;
+            case 'left':
+                if (col > 0 && tiles[selectedTileIndex - 1] === null) targetIndex = selectedTileIndex - 1;
+                break;
+            case 'right':
+                if (col < gridSize - 1 && tiles[selectedTileIndex + 1] === null) targetIndex = selectedTileIndex + 1;
+                break;
+        }
+
+        if (targetIndex !== null) {
+            [tiles[selectedTileIndex], tiles[targetIndex]] = [tiles[targetIndex], tiles[selectedTileIndex]];
+            emptyTileIndex = selectedTileIndex;
+            selectedTileIndex = targetIndex;
+            renderPuzzle();
+            updateControlButtons();
+            checkWin();
+        }
+    }
+
+    // 勝利条件を確認する関数
+    function checkWin() {
+        const isComplete = tiles.slice(0, -1).every((tile, index) => tile === index + 1);
+        if (isComplete) {
+            alert('おめでとうございます！15パズルをクリアしました！');
+        }
+    }
+
+    initializePuzzle();
+</script>
+
+</body>
+</html>
