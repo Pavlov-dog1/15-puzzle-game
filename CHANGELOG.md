@@ -31,6 +31,7 @@ Developed with the help of ChatGPT.
 | **1.1.0**     | 2024-10-28     | - Basic 4x4 puzzle functionality.<br>- Overall code optimization for performance.<br>- **Dynamic Movement Feature**: Added functionality for tiles to automatically move to adjacent empty space when tapped, providing an **Intuitive Tile Interaction** and enhancing the **User Experience**! |
 | **1.1.1**     | 2024-10-28     | - Timer to track elapsed time during gameplay.<br>- Retry button to restart the game after winning.<br>- Improved styling for the timer and buttons.<br>- Ensured timer resets correctly upon game restart. |
 | **1.2.0**     | 2024-10-28     | - Home screen with difficulty selection (3x3, 4x4, 5x5).<br>- Button to return to the home screen from the game.<br>- Updated game logic to accommodate variable grid sizes.<br>- Enhanced styling for the home screen and game interface.<br>- Minor bugs related to tile rendering fixed. |
+| **1.2.1**     | 2024-10-29     | - Highlighted selected tile with a subtle color, helping players visually identify which tile is currently selected. |
 
 ## [Acknowledgements]
 Developed with the help of ChatGPT.
