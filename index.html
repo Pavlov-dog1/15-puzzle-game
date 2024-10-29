@@ -20,6 +20,16 @@
         .visible {
             display: block;
         }
+        /* 薄い紫色の四角で囲むスタイル */
+        .difficulty-select {
+            background-color: #E6E6FA; /* ラベンダー色 */
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
         .grid {
             display: grid;
             gap: 5px;
@@ -56,6 +66,7 @@
             color: white;
             border: none;
             border-radius: 5px;
+            position: relative;
         }
         .retry-btn {
             display: none;
@@ -66,6 +77,15 @@
             margin-top: 20px;
             color: #555;
         }
+        /* ホームに戻るボタンに家アイコンを追加 */
+        .control-btns button::before {
+            content: '🏠';
+            position: absolute;
+            left: 10px;
+            font-size: 1.5em;
+            color: rgba(0, 0, 0, 0.1);
+            z-index: -1;
+        }
     </style>
 </head>
 <body>
@@ -74,9 +94,12 @@
 <div class="home-screen visible" id="home-screen">
     <h1>15パズルへようこそ！</h1>
     <p>難易度を選んでください:</p>
-    <button onclick="startGame(3)">Easy (3×3)</button>
-    <button onclick="startGame(4)">Normal (4×4)</button>
-    <button onclick="startGame(5)">Hard (5×5)</button>
+    <!-- 囲み枠を追加 -->
+    <div class="difficulty-select">
+        <button onclick="startGame(3)">Easy (3×3)</button>
+        <button onclick="startGame(4)">Normal (4×4)</button>
+        <button onclick="startGame(5)">Hard (5×5)</button>
+    </div>
 
     <!-- 作成者の名前を表示 -->
     <div class="author">
@@ -108,14 +131,12 @@
     let startTime = null;
     let timerInterval = null;
 
-    // ゲームを開始する関数
     function startGame(size) {
         gridSize = size;
         initializePuzzle();
         switchScreen('game');
     }
 
-    // ホーム画面とゲーム画面を切り替える関数
     function switchScreen(screen) {
         if (screen === 'game') {
             homeScreen.classList.remove('visible');
@@ -126,13 +147,11 @@
         }
     }
 
-    // ホーム画面へ戻る関数
     function goToHome() {
         resetTimer();
         switchScreen('home');
     }
 
-    // 初期配置を設定する関数
     function initializePuzzle() {
         tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1).concat([null]);
         tiles = shuffle(tiles);
@@ -141,14 +160,12 @@
         retryBtn.style.display = 'none'; 
     }
 
-    // タイマーをリセットする関数
     function resetTimer() {
         clearInterval(timerInterval);
         startTime = null;
         timerElement.textContent = "経過時間: 00:00";
     }
 
-    // タイマーをスタートする関数
     function startTimer() {
         startTime = Date.now();
         timerInterval = setInterval(() => {
@@ -159,7 +176,6 @@
         }, 1000);
     }
 
-    // パズルを表示する関数
     function renderPuzzle() {
         puzzle.innerHTML = '';
         puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`;
@@ -177,7 +193,6 @@
         });
     }
 
-    // タイルをシャッフルする関数
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -186,7 +201,6 @@
         return array;
     }
 
-    // タイルを移動するか試みる関数
     function tryMoveTile(index) {
         if (!startTime) startTimer();
         const row = Math.floor(index / gridSize);
@@ -203,7 +217,6 @@
         }
     }
 
-    // タイルを実際に移動する関数
     function moveTile(fromIndex, toIndex) {
         [tiles[fromIndex], tiles[toIndex]] = [tiles[toIndex], tiles[fromIndex]];
         emptyTileIndex = fromIndex;
@@ -211,7 +224,6 @@
         checkWin();
     }
 
-    // 勝利条件を確認する関数
     function checkWin() {
         const isComplete = tiles.slice(0, -1).every((tile, index) => tile === index + 1);
         if (isComplete) {
@@ -221,7 +233,6 @@
         }
     }
 
-    // 再挑戦ボタンを押したときの関数
     function retry() {
         initializePuzzle();
     }
