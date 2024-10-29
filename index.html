@@ -3,32 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>15パズル</title>
+    <title>15パズルゲーム - ユーザー登録とログイン機能付き</title>
     <style>
+        /* 共通のスタイル */
         body {
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
-            font-family: Arial, sans-serif;
         }
-        .home-screen, .game-screen {
+        .form-container, .home-screen, .game-screen {
             display: none;
         }
         .visible {
             display: block;
         }
-        /* 薄い紫色の四角で囲むスタイル */
-        .difficulty-select {
-            background-color: #E6E6FA; /* ラベンダー色 */
-            padding: 20px;
-            border-radius: 15px;
-            display: flex;
+        .form-container {
             flex-direction: column;
             align-items: center;
             gap: 10px;
+            max-width: 300px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            padding: 10px;
+            font-size: 1em;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+
+        /* ホーム画面とゲーム画面のスタイル */
+        .home-screen button, .control-btns button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
         }
         .grid {
             display: grid;
@@ -58,16 +83,6 @@
             gap: 10px;
             margin-top: 10px;
         }
-        .control-btns button, .home-screen button {
-            padding: 10px 20px;
-            font-size: 1.2em;
-            cursor: pointer;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            position: relative;
-        }
         .retry-btn {
             display: none;
             margin-top: 20px;
@@ -77,42 +92,43 @@
             margin-top: 20px;
             color: #555;
         }
-        /* ホームに戻るボタンに家アイコンを追加 */
-        .control-btns button::before {
-            content: '🏠';
-            position: absolute;
-            left: 10px;
-            font-size: 1.5em;
-            color: rgba(0, 0, 0, 0.1);
-            z-index: -1;
-        }
     </style>
 </head>
 <body>
 
+<!-- ユーザー登録画面 -->
+<div class="form-container visible" id="register-form">
+    <h2>ユーザー登録</h2>
+    <input type="text" id="username" placeholder="ユーザーID (英数字3〜15文字)" pattern="[a-zA-Z0-9]{3,15}" required>
+    <input type="password" id="password" placeholder="4桁の数字パスワード" pattern="\d{4}" required>
+    <button onclick="registerUser()">登録</button>
+</div>
+
+<!-- ユーザーログイン画面 -->
+<div class="form-container" id="login-form">
+    <h2>ログイン</h2>
+    <input type="text" id="login-id" placeholder="ユーザーID" required>
+    <input type="password" id="login-password" placeholder="パスワード (4桁)" required>
+    <button onclick="loginUser()">ログイン</button>
+</div>
+
 <!-- ホーム画面 -->
-<div class="home-screen visible" id="home-screen">
+<div class="home-screen" id="home-screen">
     <h1>15パズルへようこそ！</h1>
     <p>難易度を選んでください:</p>
-    <!-- 囲み枠を追加 -->
-    <div class="difficulty-select">
-        <button onclick="startGame(3)">Easy (3×3)</button>
-        <button onclick="startGame(4)">Normal (4×4)</button>
-        <button onclick="startGame(5)">Hard (5×5)</button>
-    </div>
+    <button onclick="startGame(3)">Easy (3×3)</button>
+    <button onclick="startGame(4)">Normal (4×4)</button>
+    <button onclick="startGame(5)">Hard (5×5)</button>
 
-    <!-- 作成者の名前を表示 -->
     <div class="author">
-        This "15 Puzzle Game" was developed with the support of ChatGPT. Created by パブロフの犬.
+        This "15 Puzzle Game" was developed with the support of ChatGPT.
     </div>
 </div>
 
 <!-- ゲーム画面 -->
 <div class="game-screen" id="game-screen">
     <div class="timer" id="timer">経過時間: 00:00</div>
-    <div class="grid" id="puzzle">
-        <!-- タイルをJavaScriptで動的に追加します -->
-    </div>
+    <div class="grid" id="puzzle"></div>
     <button class="retry-btn" id="retry-btn" onclick="retry()">再挑戦</button>
     <div class="control-btns">
         <button onclick="goToHome()">ホームへ戻る</button>
@@ -120,6 +136,49 @@
 </div>
 
 <script>
+    // ローカルストレージを利用したユーザー登録とログイン
+
+    function registerUser() {
+        const userId = document.getElementById('register-id').value;
+        const password = document.getElementById('register-password').value;
+
+        if (userId === "" || password === "") {
+            alert("ユーザーIDとパスワードを入力してください");
+            return;
+        }
+        if (password.length !== 4 || isNaN(password)) {
+            alert("パスワードは4桁の数字で入力してください");
+            return;
+        }
+
+        const userData = { password: password };
+        localStorage.setItem(userId, JSON.stringify(userData));
+        alert("ユーザー登録が完了しました！");
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+    }
+
+    function loginUser() {
+        const userId = document.getElementById('login-id').value;
+        const password = document.getElementById('login-password').value;
+        const storedUserData = localStorage.getItem(userId);
+
+        if (!storedUserData) {
+            alert("ユーザーIDが存在しません。登録してください。");
+            return;
+        }
+
+        const parsedUserData = JSON.parse(storedUserData);
+        if (parsedUserData.password === password) {
+            alert("ログイン成功！");
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('home-screen').style.display = 'block';
+        } else {
+            alert("パスワードが間違っています。");
+        }
+    }
+
+    // 15パズルゲームの処理
     const homeScreen = document.getElementById('home-screen');
     const gameScreen = document.getElementById('game-screen');
     const puzzle = document.getElementById('puzzle');
@@ -240,3 +299,7 @@
 
 </body>
 </html>
+
+
+
+                                         
