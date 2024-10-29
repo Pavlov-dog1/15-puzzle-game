@@ -14,6 +14,7 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            background-color: #f0e6fa;
         }
         .form-container, .home-screen, .game-screen {
             display: none;
@@ -30,6 +31,7 @@
             border: 1px solid #ccc;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
         }
         input, button {
             padding: 10px;
@@ -43,6 +45,16 @@
             background-color: #4CAF50;
             color: white;
             border: none;
+        }
+        .small-button {
+            font-size: 0.8em;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
         }
 
         /* ホーム画面とゲーム画面のスタイル */
@@ -96,20 +108,21 @@
 </head>
 <body>
 
-<!-- ユーザー登録画面 -->
-<div class="form-container visible" id="register-form">
-    <h2>ユーザー登録</h2>
-    <input type="text" id="username" placeholder="ユーザーID (英数字3〜15文字)" pattern="[a-zA-Z0-9]{3,15}" required>
-    <input type="password" id="password" placeholder="4桁の数字パスワード" pattern="\d{4}" required>
-    <button onclick="registerUser()">登録</button>
-</div>
-
-<!-- ユーザーログイン画面 -->
-<div class="form-container" id="login-form">
+<!-- ログイン画面 -->
+<div class="form-container visible" id="login-form">
     <h2>ログイン</h2>
     <input type="text" id="login-id" placeholder="ユーザーID" required>
     <input type="password" id="login-password" placeholder="パスワード (4桁)" required>
     <button onclick="loginUser()">ログイン</button>
+    <button class="small-button" onclick="showRegisterForm()">新規登録はこちら</button>
+</div>
+
+<!-- 新規登録画面 -->
+<div class="form-container" id="register-form">
+    <h2>ユーザー登録</h2>
+    <input type="text" id="username" placeholder="ユーザーID (英数字3〜15文字)" pattern="[a-zA-Z0-9]{3,15}" required>
+    <input type="password" id="password" placeholder="4桁の数字パスワード" pattern="\d{4}" required>
+    <button onclick="registerUser()">登録</button>
 </div>
 
 <!-- ホーム画面 -->
@@ -138,6 +151,11 @@
 <script>
     // ローカルストレージを利用したユーザー登録とログイン
 
+    function showRegisterForm() {
+        document.getElementById('login-form').classList.remove('visible');
+        document.getElementById('register-form').classList.add('visible');
+    }
+
     function registerUser() {
         const userId = document.getElementById('username').value;
         const password = document.getElementById('password').value;
@@ -154,8 +172,8 @@
         const userData = { password: password };
         localStorage.setItem(userId, JSON.stringify(userData));
         alert("ユーザー登録が完了しました！");
-        document.getElementById('register-form').style.display = 'none';
-        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('register-form').classList.remove('visible');
+        document.getElementById('login-form').classList.add('visible');
     }
 
     function loginUser() {
@@ -171,8 +189,8 @@
         const parsedUserData = JSON.parse(storedUserData);
         if (parsedUserData.password === password) {
             alert("ログイン成功！");
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('home-screen').style.display = 'block';
+            document.getElementById('login-form').classList.remove('visible');
+            document.getElementById('home-screen').classList.add('visible');
         } else {
             alert("パスワードが間違っています。");
         }
@@ -221,85 +239,82 @@
 
     function resetTimer() {
         clearInterval(timerInterval);
+        timerElement.textContent = '経過時間: 00:00';
         startTime = null;
-        timerElement.textContent = "経過時間: 00:00";
-    }
-
-    function startTimer() {
-        startTime = Date.now();
-        timerInterval = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            const minutes = Math.floor(elapsed / 60000);
-            const seconds = Math.floor((elapsed % 60000) / 1000);
-            timerElement.textContent = `経過時間: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }, 1000);
     }
 
     function renderPuzzle() {
         puzzle.innerHTML = '';
-        puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`;
-        puzzle.style.gridTemplateRows = `repeat(${gridSize}, 100px)`;
+        puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
         tiles.forEach((tile, index) => {
-            const tileDiv = document.createElement('div');
-            tileDiv.classList.add('tile');
+            const tileElement = document.createElement('div');
+            tileElement.classList.add('tile');
             if (tile === null) {
-                tileDiv.classList.add('empty');
+                tileElement.classList.add('empty');
+                emptyTileIndex = index;
             } else {
-                tileDiv.textContent = tile;
-                tileDiv.addEventListener('click', () => tryMoveTile(index));
+                tileElement.textContent = tile;
+                tileElement.onclick = () => moveTile(index);
             }
-            puzzle.appendChild(tileDiv);
+            puzzle.appendChild(tileElement);
         });
     }
 
     function shuffle(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
         }
         return array;
     }
 
-    function tryMoveTile(index) {
-        if (!startTime) startTimer();
-        const row = Math.floor(index / gridSize);
-        const col = index % gridSize;
+    function moveTile(tileIndex) {
+        const row = Math.floor(tileIndex / gridSize);
+        const col = tileIndex % gridSize;
+        const emptyRow = Math.floor(emptyTileIndex / gridSize);
+        const emptyCol = emptyTileIndex % gridSize;
 
-        if (row > 0 && tiles[index - gridSize] === null) {
-            moveTile(index, index - gridSize);
-        } else if (row < gridSize - 1 && tiles[index + gridSize] === null) {
-            moveTile(index, index + gridSize);
-        } else if (col > 0 && tiles[index - 1] === null) {
-            moveTile(index, index - 1);
-        } else if (col < gridSize - 1 && tiles[index + 1] === null) {
-            moveTile(index, index + 1);
+        if ((Math.abs(row - emptyRow) + Math.abs(col - emptyCol)) === 1) {
+            [tiles[tileIndex], tiles[emptyTileIndex]] = [tiles[emptyTileIndex], tiles[tileIndex]];
+            emptyTileIndex = tileIndex;
+            renderPuzzle();
+
+            if (startTime === null) {
+                startTime = new Date();
+                startTimer();
+            }
+
+            if (isPuzzleSolved()) {
+                clearInterval(timerInterval);
+                alert(`クリア！経過時間: ${timerElement.textContent.split(': ')[1]}`);
+                retryBtn.style.display = 'block';
+            }
         }
     }
 
-    function moveTile(fromIndex, toIndex) {
-        [tiles[fromIndex], tiles[toIndex]] = [tiles[toIndex], tiles[fromIndex]];
-        emptyTileIndex = fromIndex;
-        renderPuzzle();
-        checkWin();
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            const elapsed = new Date() - startTime;
+            const minutes = String(Math.floor(elapsed / 60000)).padStart(2, '0');
+            const seconds = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, '0');
+            timerElement.textContent = `経過時間: ${minutes}:${seconds}`;
+        }, 1000);
     }
 
-    function checkWin() {
-        const isComplete = tiles.slice(0, -1).every((tile, index) => tile === index + 1);
-        if (isComplete) {
-            clearInterval(timerInterval);
-            alert(`おめでとうございます！${gridSize}×${gridSize}パズルをクリアしました！\nクリアタイム: ${timerElement.textContent.replace('経過時間: ', '')}`);
-            retryBtn.style.display = 'block';
+    function isPuzzleSolved() {
+        for (let i = 0; i < tiles.length - 1; i++) {
+            if (tiles[i] !== i + 1) return false;
         }
+        return true;
     }
 
     function retry() {
         initializePuzzle();
+        retryBtn.style.display = 'none';
     }
 </script>
 
 </body>
 </html>
-
-
-
-                                         
