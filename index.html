@@ -2,239 +2,127 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>15パズルゲーム - ユーザー登録とログイン機能付き</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スライドパズルゲーム</title>
     <style>
-        /* 共通のスタイル */
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
             margin: 0;
-            background-color: #f0e6fa;
+            font-family: Arial, sans-serif;
         }
-        .form-container, .home-screen, .game-screen {
+        #homeScreen, #gameScreen {
             display: none;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.3s;
         }
-        .visible {
-            display: block;
+        #homeScreen {
+            display: flex;
+            background-color: purple;
+            color: white;
         }
-        .form-container {
+        #gameScreen {
+            display: flex;
+            background-color: white;
+            color: black;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
-            max-width: 300px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        #loginBox {
             background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 80%; /* ログイン画面の横幅を広げました */
+            max-width: 400px;
+            box-sizing: border-box;
         }
-        input, button {
-            padding: 10px;
-            font-size: 1em;
+        .inputField {
             width: 100%;
-            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
             border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
         }
-        button {
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-        }
-        .small-button {
-            font-size: 0.8em;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        /* ホーム画面とゲーム画面のスタイル */
-        .home-screen button, .control-btns button {
-            padding: 10px 20px;
-            font-size: 1.2em;
-            cursor: pointer;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        .grid {
+        #puzzle {
             display: grid;
             gap: 5px;
+            margin-top: 20px;
         }
         .tile {
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2em;
-            background-color: #4CAF50;
-            color: white;
+            background-color: #f0f0f0;
+            font-size: 24px;
+            font-weight: bold;
             cursor: pointer;
+            width: 80px;
+            height: 80px;
+            border-radius: 4px;
         }
         .empty {
-            background-color: #ddd;
-            cursor: default;
+            background-color: white;
         }
-        .timer {
-            font-size: 1.5em;
-            margin-bottom: 20px;
+        #timer, #retryBtn {
+            margin-top: 20px;
+            font-size: 18px;
         }
-        .control-btns {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .retry-btn {
+        #retryBtn {
             display: none;
-            margin-top: 20px;
-        }
-        .author {
-            font-size: 0.9em;
-            margin-top: 20px;
-            color: #555;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-<!-- ログイン画面 -->
-<div class="form-container visible" id="login-form">
-    <h2>ログイン</h2>
-    <input type="text" id="login-id" placeholder="ユーザーID" required>
-    <input type="password" id="login-password" placeholder="パスワード (4桁)" required>
-    <button onclick="loginUser()">ログイン</button>
-    <button class="small-button" onclick="showRegisterForm()">新規登録はこちら</button>
-</div>
-
-<!-- 新規登録画面 -->
-<div class="form-container" id="register-form">
-    <h2>ユーザー登録</h2>
-    <input type="text" id="username" placeholder="ユーザーID (英数字3〜15文字)" pattern="[a-zA-Z0-9]{3,15}" required>
-    <input type="password" id="password" placeholder="4桁の数字パスワード" pattern="\d{4}" required>
-    <button onclick="registerUser()">登録</button>
-</div>
-
-<!-- ホーム画面 -->
-<div class="home-screen" id="home-screen">
-    <h1>15パズルへようこそ！</h1>
-    <p>難易度を選んでください:</p>
-    <button onclick="startGame(3)">Easy (3×3)</button>
-    <button onclick="startGame(4)">Normal (4×4)</button>
-    <button onclick="startGame(5)">Hard (5×5)</button>
-
-    <div class="author">
-        This "15 Puzzle Game" was developed with the support of ChatGPT.
+<div id="homeScreen">
+    <div id="loginBox">
+        <h2>ログイン</h2>
+        <input type="text" id="userId" class="inputField" placeholder="ユーザーID">
+        <input type="password" id="password" class="inputField" placeholder="パスワード">
+        <button onclick="startGame()">ログイン</button>
     </div>
 </div>
 
-<!-- ゲーム画面 -->
-<div class="game-screen" id="game-screen">
-    <div class="timer" id="timer">経過時間: 00:00</div>
-    <div class="grid" id="puzzle"></div>
-    <button class="retry-btn" id="retry-btn" onclick="retry()">再挑戦</button>
-    <div class="control-btns">
-        <button onclick="goToHome()">ホームへ戻る</button>
-    </div>
+<div id="gameScreen">
+    <h1>スライドパズル</h1>
+    <div id="puzzle"></div>
+    <div id="timer">経過時間: 00:00</div>
+    <button id="retryBtn" onclick="retry()">再挑戦</button>
 </div>
 
 <script>
-    // ローカルストレージを利用したユーザー登録とログイン
-
-    function showRegisterForm() {
-        document.getElementById('login-form').classList.remove('visible');
-        document.getElementById('register-form').classList.add('visible');
-    }
-
-    function registerUser() {
-        const userId = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        if (userId === "" || password === "") {
-            alert("ユーザーIDとパスワードを入力してください");
-            return;
-        }
-        if (password.length !== 4 || isNaN(password)) {
-            alert("パスワードは4桁の数字で入力してください");
-            return;
-        }
-
-        const userData = { password: password };
-        localStorage.setItem(userId, JSON.stringify(userData));
-        alert("ユーザー登録が完了しました！");
-        document.getElementById('register-form').classList.remove('visible');
-        document.getElementById('login-form').classList.add('visible');
-    }
-
-    function loginUser() {
-        const userId = document.getElementById('login-id').value;
-        const password = document.getElementById('login-password').value;
-        const storedUserData = localStorage.getItem(userId);
-
-        if (!storedUserData) {
-            alert("ユーザーIDが存在しません。登録してください。");
-            return;
-        }
-
-        const parsedUserData = JSON.parse(storedUserData);
-        if (parsedUserData.password === password) {
-            alert("ログイン成功！");
-            document.getElementById('login-form').classList.remove('visible');
-            document.getElementById('home-screen').classList.add('visible');
-        } else {
-            alert("パスワードが間違っています。");
-        }
-    }
-
-    // 15パズルゲームの処理
-    const homeScreen = document.getElementById('home-screen');
-    const gameScreen = document.getElementById('game-screen');
+    const homeScreen = document.getElementById('homeScreen');
+    const gameScreen = document.getElementById('gameScreen');
     const puzzle = document.getElementById('puzzle');
     const timerElement = document.getElementById('timer');
-    const retryBtn = document.getElementById('retry-btn');
+    const retryBtn = document.getElementById('retryBtn');
+
     let gridSize = 4;
     let tiles = [];
-    let emptyTileIndex = gridSize * gridSize - 1;
+    let emptyTileIndex;
     let startTime = null;
-    let timerInterval = null;
+    let timerInterval;
 
-    function startGame(size) {
-        gridSize = size;
+    function startGame() {
+        homeScreen.style.display = 'none';
+        gameScreen.style.display = 'flex';
         initializePuzzle();
-        switchScreen('game');
-    }
-
-    function switchScreen(screen) {
-        if (screen === 'game') {
-            homeScreen.classList.remove('visible');
-            gameScreen.classList.add('visible');
-        } else {
-            gameScreen.classList.remove('visible');
-            homeScreen.classList.add('visible');
-        }
-    }
-
-    function goToHome() {
-        resetTimer();
-        switchScreen('home');
     }
 
     function initializePuzzle() {
-        tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1).concat([null]);
+        tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1);
+        tiles.push(null); 
         tiles = shuffle(tiles);
         renderPuzzle();
         resetTimer();
-        retryBtn.style.display = 'none'; 
     }
 
     function resetTimer() {
