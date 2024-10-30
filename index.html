@@ -20,6 +20,72 @@
         .timer { margin-bottom: 10px; font-size: 18px; }
         .control-btns, .retry-btn { margin-top: 10px; }
         .author { margin-top: 20px; font-size: small; color: gray; }
+
+        <style>
+    /* グリッドの設定 */
+    .grid {
+        display: grid;
+        gap: 5px;
+        margin-top: 20px;
+        padding: 10px;
+    }
+
+    /* タイルの設定 */
+    .tile {
+        width: 100px;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #87CEEB; /* タイルの背景色 */
+        font-size: 24px;
+        font-weight: bold;
+        color: #FFFFFF;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    /* 空のタイル（移動スペース）の設定 */
+    .tile.empty {
+        background-color: transparent;
+        cursor: default;
+    }
+
+    /* 他のスタイル */
+    .visible {
+        display: block;
+    }
+
+    .home-screen, .game-screen {
+        display: none;
+        text-align: center;
+        margin: 0 auto;
+        padding: 20px;
+        max-width: 400px;
+    }
+
+    .home-screen.visible, .game-screen.visible {
+        display: block;
+    }
+
+    /* タイマーのスタイル */
+    .timer {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    /* 再挑戦ボタンのスタイル */
+    .retry-btn {
+        margin-top: 20px;
+    }
+
+    /* 囲み枠のデザイン */
+    .difficulty-select {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
     </style>
 </head>
 <body>
