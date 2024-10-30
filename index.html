@@ -2,8 +2,17 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>簡易Webアプリ</title>
+    <title>15パズルゲームアプリ</title>
     <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
         .screen { display: none; }
         .visible { display: block; }
         .tile {
@@ -208,51 +217,21 @@
         }
 
         function renderPuzzle() {
+            const puzzle = document.getElementById
             const puzzle = document.getElementById("puzzle");
-            puzzle.innerHTML = '';
-            puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
-            puzzle.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+            puzzle.innerHTML = "";
+            puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`;
+            puzzle.style.gridTemplateRows = `repeat(${gridSize}, 100px)`;
+
             tiles.forEach((tile, index) => {
-                const tileDiv = document.createElement('div');
-                tileDiv.classList.add('tile');
-                if (tile === null) {
-                    tileDiv.classList.add
-                    tileDiv.classList.add('empty');
-                    emptyTileIndex = index;
-                } else {
-                    tileDiv.textContent = tile;
-                    tileDiv.addEventListener('click', () => moveTile(index));
-                }
-                puzzle.appendChild(tileDiv);
+                const tileElement = document.createElement("div");
+                tileElement.className = "tile";
+                tileElement.textContent = tile !== null ? tile : "";
+                tileElement.classList.toggle("empty", tile === null);
+                tileElement.addEventListener("click", () => moveTile(index));
+                puzzle.appendChild(tileElement);
+                if (tile === null) emptyTileIndex = index;
             });
-        }
-
-        function moveTile(index) {
-            if (canMoveTile(index)) {
-                [tiles[emptyTileIndex], tiles[index]] = [tiles[index], tiles[emptyTileIndex]];
-                emptyTileIndex = index;
-                renderPuzzle();
-                if (checkWin()) {
-                    clearInterval(timerInterval);
-                    alert("おめでとうございます！パズルを解きました！");
-                    document.getElementById("retry-btn").style.display = 'block';
-                }
-            }
-        }
-
-        function canMoveTile(index) {
-            const row = Math.floor(index / gridSize);
-            const col = index % gridSize;
-            const emptyRow = Math.floor(emptyTileIndex / gridSize);
-            const emptyCol = emptyTileIndex % gridSize;
-            return Math.abs(row - emptyRow) + Math.abs(col - emptyCol) === 1;
-        }
-
-        function checkWin() {
-            for (let i = 0; i < tiles.length - 1; i++) {
-                if (tiles[i] !== i + 1) return false;
-            }
-            return tiles[tiles.length - 1] === null;
         }
 
         function shuffle(array) {
@@ -263,33 +242,52 @@
             return array;
         }
 
-        function retry() {
-            initializePuzzle();
+        function moveTile(index) {
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+            const emptyRow = Math.floor(emptyTileIndex / gridSize);
+            const emptyCol = emptyTileIndex % gridSize;
+
+            if ((Math.abs(row - emptyRow) + Math.abs(col - emptyCol)) === 1) {
+                [tiles[index], tiles[emptyTileIndex]] = [tiles[emptyTileIndex], tiles[index]];
+                emptyTileIndex = index;
+                renderPuzzle();
+                if (isSolved()) endGame();
+            }
         }
 
-        function goToHome() {
+        function isSolved() {
+            for (let i = 0; i < tiles.length - 1; i++) {
+                if (tiles[i] !== i + 1) return false;
+            }
+            return true;
+        }
+
+        function endGame() {
             clearInterval(timerInterval);
-            showScreen("home-screen");
+            document.getElementById("retry-btn").style.display = 'block';
+            alert(`おめでとうございます！クリアタイム: ${document.getElementById("timer").textContent}`);
+        }
+
+        function retry() {
+            initializePuzzle();
+            resetTimer();
         }
 
         function resetTimer() {
             clearInterval(timerInterval);
             startTime = Date.now();
-            timerInterval = setInterval(updateTimer, 1000);
+            timerInterval = setInterval(() => {
+                const elapsedTime = Date.now() - startTime;
+                const minutes = String(Math.floor(elapsedTime / 60000)).padStart(2, '0');
+                const seconds = String(Math.floor((elapsedTime % 60000) / 1000)).padStart(2, '0');
+                document.getElementById("timer").textContent = `経過時間: ${minutes}:${seconds}`;
+            }, 1000);
         }
 
-        function updateTimer() {
-            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-            const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
-            const seconds = String(elapsedTime % 60).padStart(2, '0');
-            document.getElementById("timer").textContent = `経過時間: ${minutes}:${seconds}`;
-        }
-
-        // 初期画面の設定
-        if (localStorage.getItem("isLoggedIn") === "true") {
+        function goToHome() {
+            clearInterval(timerInterval);
             showScreen("home-screen");
-        } else {
-            showScreen("login-screen");
         }
     </script>
 
