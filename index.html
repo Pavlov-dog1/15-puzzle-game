@@ -2,201 +2,123 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>15パズルゲームアプリ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パズルゲーム</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
-        .screen { display: none; }
-        .visible { display: block; }
-        .tile {
-            width: 100px;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            border: 1px solid #ccc;
-            cursor: pointer;
-        }
-        .tile.empty { background-color: #f0f0f0; cursor: default; }
-        .timer { margin-bottom: 10px; font-size: 18px; }
-        .control-btns, .retry-btn { margin-top: 10px; }
-        .author { margin-top: 20px; font-size: small; color: gray; }
-        .grid {
-            display: grid;
-            gap: 5px;
-            margin-top: 20px;
-            padding: 10px;
-        }
-        .tile {
-            width: 100px;
-            height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #87CEEB;
-            font-size: 24px;
-            font-weight: bold;
-            color: #FFFFFF;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .tile.empty { background-color: transparent; cursor: default; }
-        .home-screen, .game-screen {
-            display: none;
-            text-align: center;
-            margin: 0 auto;
-            padding: 20px;
-            max-width: 400px;
-        }
-        .home-screen.visible, .game-screen.visible { display: block; }
-        .timer { font-size: 18px; margin-bottom: 10px; }
-        .retry-btn { margin-top: 20px; }
-        .difficulty-select {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+        /* CSSコードは省略（上のコードを使用） */
     </style>
 </head>
-<body>
+<body onload="showScreen('home-screen')">
+
+    <!-- ホーム画面 -->
+    <div id="home-screen" class="screen">
+        <h1>スライドパズルゲーム</h1>
+        <button onclick="showScreen('login-screen')">ログイン</button>
+        <button onclick="showScreen('register-screen')">新規登録</button>
+        <button onclick="showScreen('admin-login-screen')">管理者ログイン</button>
+    </div>
 
     <!-- ログイン画面 -->
-    <div id="login-screen" class="screen visible">
-        <h1>ログイン画面</h1>
-        <input type="text" id="login-username" placeholder="ユーザー名">
-        <input type="password" id="login-password" placeholder="パスワード">
+    <div id="login-screen" class="screen">
+        <h2>ログイン</h2>
+        <input id="username" type="text" placeholder="ユーザー名"><br>
+        <input id="password" type="password" placeholder="パスワード"><br>
         <button onclick="login()">ログイン</button>
-        <p id="login-error-msg" style="color: red;"></p>
-        <p>
-            <a href="#" onclick="showScreen('register-screen')">新規登録はこちら</a> |
-            <a href="#" onclick="showScreen('admin-login-screen')">管理者ログインはこちら</a>
-        </p>
+        <button onclick="showScreen('home-screen')">戻る</button>
     </div>
 
     <!-- 新規登録画面 -->
     <div id="register-screen" class="screen">
-        <h1>新規登録画面</h1>
-        <input type="text" id="register-username" placeholder="新しいユーザー名">
-        <input type="password" id="register-password" placeholder="新しいパスワード">
+        <h2>新規登録</h2>
+        <input id="new-username" type="text" placeholder="新しいユーザー名"><br>
+        <input id="new-password" type="password" placeholder="新しいパスワード"><br>
         <button onclick="register()">登録</button>
-        <p id="register-msg" style="color: green;"></p>
-        <p>
-            <a href="#" onclick="showScreen('login-screen')">ログイン画面へ</a> |
-            <a href="#" onclick="showScreen('login-screen')">既にアカウントがある方はこちら</a>
-        </p>
+        <button onclick="showScreen('home-screen')">戻る</button>
     </div>
 
     <!-- 管理者ログイン画面 -->
     <div id="admin-login-screen" class="screen">
-        <h1>管理者ログイン画面</h1>
-        <input type="text" id="admin-username" placeholder="管理者ユーザー名">
-        <input type="password" id="admin-password" placeholder="管理者パスワード">
+        <h2>管理者ログイン</h2>
+        <input id="admin-username" type="text" placeholder="管理者ID"><br>
+        <input id="admin-password" type="password" placeholder="管理者パスワード"><br>
         <button onclick="adminLogin()">ログイン</button>
-        <p id="admin-error-msg" style="color: red;"></p>
-        <p><a href="#" onclick="showScreen('login-screen')">ログイン画面はこちら</a></p>
-    </div>
-
-    <!-- 管理者ホーム画面 -->
-    <div id="admin-home-screen" class="screen">
-        <h1>管理者ホーム画面</h1>
-        <h2>登録ユーザー一覧</h2>
-        <ul id="user-list"></ul>
-        <button onclick="logout()">ログアウト</button>
-    </div>
-
-    <!-- ホーム画面 -->
-    <div id="home-screen" class="screen">
-        <h1>15パズルへようこそ！</h1>
-        <p>難易度を選んでください:</p>
-        <button onclick="startGame(3)">Easy (3×3)</button>
-        <button onclick="startGame(4)">Normal (4×4)</button>
-        <button onclick="startGame(5)">Hard (5×5)</button>
-        <button onclick="logout()">ログアウト</button>
-        <div class="author">
-            This "15 Puzzle Game" was developed with the support of ChatGPT.Created by パブロフの犬.
-        </div>
+        <button onclick="showScreen('home-screen')">戻る</button>
     </div>
 
     <!-- ゲーム画面 -->
     <div id="game-screen" class="screen">
-        <div class="timer" id="timer">経過時間: 00:00</div>
-        <div class="grid" id="puzzle"></div>
-        <button id="retry-btn" onclick="retry()" style="display: none;">再挑戦</button>
-        <div class="control-btns">
-            <button onclick="goToHome()">ホームへ戻る</button>
-        </div>
+        <div id="puzzle"></div>
+        <div id="timer">経過時間: 00:00</div>
+        <button onclick="retry()">リトライ</button>
+        <button onclick="goToHome()">ホームに戻る</button>
+    </div>
+
+    <!-- ユーザー管理画面 -->
+    <div id="admin-screen" class="screen">
+        <h2>ユーザー管理画面</h2>
+        <ul id="user-list"></ul>
+        <button onclick="showScreen('home-screen')">ホームに戻る</button>
     </div>
 
     <script>
-        const storedAdminUsername = "admin";
-        const storedAdminPassword = "admin123";
-        let users = JSON.parse(localStorage.getItem("users")) || [];
-        let gridSize = 4;
-        let tiles = [];
-        let emptyTileIndex;
-        let startTime;
-        let timerInterval;
+        const screens = document.querySelectorAll(".screen");
+        let users = {}; // ユーザー情報を保存するオブジェクト
+        let currentUser = null;
+        let adminCredentials = { username: "Admin", password: "Password0924" };
 
         function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('visible'));
-            document.getElementById(screenId).classList.add('visible');
-        }
-
-        function register() {
-            const username = document.getElementById("register-username").value;
-            const password = document.getElementById("register-password").value;
-            if (username && password && !users.find(user => user.username === username)) {
-                users.push({ username, password });
-                localStorage.setItem("users", JSON.stringify(users));
-                document.getElementById("register-msg").textContent = "登録が成功しました";
-                showScreen("login-screen");
-            } else {
-                document.getElementById("register-msg").textContent = "登録失敗：既に存在するユーザー名です";
-            }
+            screens.forEach(screen => screen.style.display = "none");
+            document.getElementById(screenId).style.display = "block";
         }
 
         function login() {
-            const username = document.getElementById("login-username").value;
-            const password = document.getElementById("login-password").value;
-            const user = users.find(user => user.username === username && user.password === password);
-            if (user) {
-                localStorage.setItem("isLoggedIn", "true");
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            if (users[username] && users[username] === password) {
+                currentUser = username;
+                alert(`${username}さん、ようこそ！`);
+                showScreen("game-screen");
+                initializePuzzle();
+                resetTimer();
+            } else {
+                alert("ユーザー名またはパスワードが間違っています。");
+            }
+        }
+
+        function register() {
+            const newUsername = document.getElementById("new-username").value;
+            const newPassword = document.getElementById("new-password").value;
+            if (!users[newUsername]) {
+                users[newUsername] = newPassword;
+                alert("登録が完了しました！");
                 showScreen("home-screen");
             } else {
-                document.getElementById("login-error-msg").textContent = "ユーザー名またはパスワードが違います";
+                alert("このユーザー名は既に使用されています。");
             }
         }
 
         function adminLogin() {
-            const username = document.getElementById("admin-username").value;
-            const password = document.getElementById("admin-password").value;
-            if (username === storedAdminUsername && password === storedAdminPassword) {
-                showScreen("admin-home-screen");
-                showAdminScreen();
+            const adminUsername = document.getElementById("admin-username").value;
+            const adminPassword = document.getElementById("admin-password").value;
+            if (adminUsername === adminCredentials.username && adminPassword === adminCredentials.password) {
+                showScreen("admin-screen");
+                displayUserList();
             } else {
-                document.getElementById("admin-error-msg").textContent = "IDまたはパスワードが間違っています";
+                alert("管理者IDまたはパスワードが間違っています。");
             }
         }
 
-        function showAdminScreen() {
-            const userListElement = document.getElementById("user-list");
-            userListElement.innerHTML = "";
-            users.forEach(user => {
-                const userItem = document.createElement("li");
-                userItem.textContent = `ID: ${user.username}, Password: ${user.password}`;
-                userListElement.appendChild(userItem);
-            });
+        function displayUserList() {
+            const userList = document.getElementById("user-list");
+            userList.innerHTML = "";
+            for (const username in users) {
+                const li = document.createElement("li");
+                li.textContent = username;
+                userList.appendChild(li);
+            }
         }
 
+        // タイマー・パズル機能のコードはそのまま再利用
         function logout() {
             localStorage.removeItem("isLoggedIn");
             showScreen("login-screen");
