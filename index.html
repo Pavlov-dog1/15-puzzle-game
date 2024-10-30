@@ -157,70 +157,75 @@
         </div>
     </div>
 
-    <script>
-        const storedAdminUsername = "admin";
-        const storedAdminPassword = "admin123";
-        let users = JSON.parse(localStorage.getItem("users")) || [];
-        let gridSize = 4;
-        let tiles = [];
-        let emptyTileIndex;
-        let startTime;
-        let timerInterval;
+<script>
+    const storedAdminUsername = "admin";
+    const storedAdminPassword = "admin123";
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+    let gridSize = 4;
+    let tiles = [];
+    let emptyTileIndex;
+    let startTime;
+    let timerInterval;
 
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('visible'));
-            document.getElementById(screenId).classList.add('visible');
-        }
+    function showScreen(screenId) {
+        // すべての画面を非表示にする
+        document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('visible'));
+        // 指定されたIDの画面を表示する
+        document.getElementById(screenId).classList.add('visible');
+    }
 
-        function register() {
-            const username = document.getElementById("register-username").value;
-            const password = document.getElementById("register-password").value;
-            if (username && password && !users.find(user => user.username === username)) {
-                users.push({ username, password });
-                localStorage.setItem("users", JSON.stringify(users));
-                document.getElementById("register-msg").textContent = "登録が成功しました";
-            } else {
-                document.getElementById("register-msg").textContent = "登録失敗：既に存在するユーザー名です";
-            }
+    function register() {
+        const username = document.getElementById("register-username").value;
+        const password = document.getElementById("register-password").value;
+        if (username && password && !users.find(user => user.username === username)) {
+            users.push({ username, password });
+            localStorage.setItem("users", JSON.stringify(users));
+            document.getElementById("register-msg").textContent = "登録が成功しました";
+            showScreen("login-screen");  // 登録後にログイン画面に移動
+        } else {
+            document.getElementById("register-msg").textContent = "登録失敗：既に存在するユーザー名です";
         }
+    }
 
-        function login() {
-            const username = document.getElementById("login-username").value;
-            const password = document.getElementById("login-password").value;
-            const user = users.find(user => user.username === username && user.password === password);
-            if (user) {
-                localStorage.setItem("isLoggedIn", "true");
-                showScreen("home-screen");
-            } else {
-                document.getElementById("login-error-msg").textContent = "ユーザー名またはパスワードが違います";
-            }
+    function login() {
+        const username = document.getElementById("login-username").value;
+        const password = document.getElementById("login-password").value;
+        const user = users.find(user => user.username === username && user.password === password);
+        if (user) {
+            localStorage.setItem("isLoggedIn", "true");
+            showScreen("home-screen");  // ホーム画面に移動
+        } else {
+            document.getElementById("login-error-msg").textContent = "ユーザー名またはパスワードが違います";
         }
+    }
 
-        function adminLogin() {
-            const username = document.getElementById("admin-username").value;
-            const password = document.getElementById("admin-password").value;
-            if (username === storedAdminUsername && password === storedAdminPassword) {
-                showScreen("admin-home-screen");
-                showAdminScreen();
-            } else {
-                document.getElementById("admin-error-msg").textContent = "IDまたはパスワードが間違っています";
-            }
+    function adminLogin() {
+        const username = document.getElementById("admin-username").value;
+        const password = document.getElementById("admin-password").value;
+        if (username === storedAdminUsername && password === storedAdminPassword) {
+            showScreen("admin-home-screen");  // 管理者ホーム画面に移動
+            showAdminScreen();
+        } else {
+            document.getElementById("admin-error-msg").textContent = "IDまたはパスワードが間違っています";
         }
+    }
 
-        function showAdminScreen() {
-            const userListElement = document.getElementById("user-list");
-            userListElement.innerHTML = "";
-            users.forEach(user => {
-                const userItem = document.createElement("li");
-                userItem.textContent = `ID: ${user.username}, Password: ${user.password}`;
-                userListElement.appendChild(userItem);
-            });
-        }
+    function showAdminScreen() {
+        const userListElement = document.getElementById("user-list");
+        userListElement.innerHTML = "";
+        users.forEach(user => {
+            const userItem = document.createElement("li");
+            userItem.textContent = `ID: ${user.username}, Password: ${user.password}`;
+            userListElement.appendChild(userItem);
+        });
+    }
 
-        function logout() {
-            localStorage.removeItem("isLoggedIn");
-            showScreen("login-screen");
-        }
+    function logout() {
+        localStorage.removeItem("isLoggedIn");
+        showScreen("login-screen");  // ログイン画面に移動
+    }
+</script>
+
 
         function startGame(size) {
             gridSize = size;
