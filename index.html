@@ -4,9 +4,64 @@
     <meta charset="UTF-8">
     <title>簡易Webアプリ</title>
     <style>
-        .screen { display: none; }
-        .visible { display: block; }
-        .author { margin-top: 20px; font-size: small; color: gray; }
+        /* 基本スタイル */
+        .screen {
+            display: none;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .visible {
+            display: block;
+        }
+        h1 {
+            color: #2196F3;
+        }
+        input {
+            margin: 10px;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .author {
+            font-size: 0.9em;
+            margin-top: 20px;
+            color: #555;
+        }
+        .grid {
+            display: grid;
+            gap: 5px;
+            justify-content: center;
+        }
+        .tile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            width: 100px;
+            height: 100px;
+        }
+        .empty {
+            background-color: #ddd;
+            cursor: default;
+        }
+        .timer {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -64,7 +119,7 @@
         <button onclick="startGame(5)">Hard (5×5)</button>
         <button onclick="logout()">ログアウト</button>
         <div class="author">
-            This "15 Puzzle Game" was developed with the support of ChatGPT.Created by パブロフの犬.
+            This "15 Puzzle Game" was developed with the support of ChatGPT.
         </div>
     </div>
 
@@ -113,21 +168,20 @@
         function adminLogin() {
             const username = document.getElementById("admin-username").value;
             const password = document.getElementById("admin-password").value;
-            if (username === "Admin" && password === "Password0924") { // 管理者のIDとパスワード
-                showScreen("admin-screen");
+            if (username === storedAdminUsername && password === storedAdminPassword) {
+                showScreen("admin-home-screen");
                 showAdminScreen();
             } else {
                 document.getElementById("admin-error-msg").textContent = "IDまたはパスワードが間違っています";
             }
         }
 
-
         function showAdminScreen() {
             const userListElement = document.getElementById("user-list");
             userListElement.innerHTML = "";
             users.forEach(user => {
                 const userItem = document.createElement("li");
-                userItem.textContent = `ID: ${user.username}, Password: ${user.password}`; // IDとパスワードを表示
+                userItem.textContent = `ID: ${user.username}, Password: ${user.password}`;
                 userListElement.appendChild(userItem);
             });
         }
