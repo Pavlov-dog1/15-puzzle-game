@@ -20,72 +20,42 @@
         .timer { margin-bottom: 10px; font-size: 18px; }
         .control-btns, .retry-btn { margin-top: 10px; }
         .author { margin-top: 20px; font-size: small; color: gray; }
-
-        <style>
-    /* グリッドの設定 */
-    .grid {
-        display: grid;
-        gap: 5px;
-        margin-top: 20px;
-        padding: 10px;
-    }
-
-    /* タイルの設定 */
-    .tile {
-        width: 100px;
-        height: 100px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #87CEEB; /* タイルの背景色 */
-        font-size: 24px;
-        font-weight: bold;
-        color: #FFFFFF;
-        border-radius: 8px;
-        cursor: pointer;
-    }
-
-    /* 空のタイル（移動スペース）の設定 */
-    .tile.empty {
-        background-color: transparent;
-        cursor: default;
-    }
-
-    /* 他のスタイル */
-    .visible {
-        display: block;
-    }
-
-    .home-screen, .game-screen {
-        display: none;
-        text-align: center;
-        margin: 0 auto;
-        padding: 20px;
-        max-width: 400px;
-    }
-
-    .home-screen.visible, .game-screen.visible {
-        display: block;
-    }
-
-    /* タイマーのスタイル */
-    .timer {
-        font-size: 18px;
-        margin-bottom: 10px;
-    }
-
-    /* 再挑戦ボタンのスタイル */
-    .retry-btn {
-        margin-top: 20px;
-    }
-
-    /* 囲み枠のデザイン */
-    .difficulty-select {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
+        .grid {
+            display: grid;
+            gap: 5px;
+            margin-top: 20px;
+            padding: 10px;
+        }
+        .tile {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #87CEEB;
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFFFFF;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .tile.empty { background-color: transparent; cursor: default; }
+        .home-screen, .game-screen {
+            display: none;
+            text-align: center;
+            margin: 0 auto;
+            padding: 20px;
+            max-width: 400px;
+        }
+        .home-screen.visible, .game-screen.visible { display: block; }
+        .timer { font-size: 18px; margin-bottom: 10px; }
+        .retry-btn { margin-top: 20px; }
+        .difficulty-select {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -168,9 +138,7 @@
         let timerInterval;
 
         function showScreen(screenId) {
-            // すべての画面を非表示にする
             document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('visible'));
-            // 指定されたIDの画面を表示する
             document.getElementById(screenId).classList.add('visible');
         }
 
@@ -181,7 +149,7 @@
                 users.push({ username, password });
                 localStorage.setItem("users", JSON.stringify(users));
                 document.getElementById("register-msg").textContent = "登録が成功しました";
-                showScreen("login-screen");  // 登録後にログイン画面に移動
+                showScreen("login-screen");
             } else {
                 document.getElementById("register-msg").textContent = "登録失敗：既に存在するユーザー名です";
             }
@@ -193,7 +161,7 @@
             const user = users.find(user => user.username === username && user.password === password);
             if (user) {
                 localStorage.setItem("isLoggedIn", "true");
-                showScreen("home-screen");  // ホーム画面に移動
+                showScreen("home-screen");
             } else {
                 document.getElementById("login-error-msg").textContent = "ユーザー名またはパスワードが違います";
             }
@@ -203,7 +171,7 @@
             const username = document.getElementById("admin-username").value;
             const password = document.getElementById("admin-password").value;
             if (username === storedAdminUsername && password === storedAdminPassword) {
-                showScreen("admin-home-screen");  // 管理者ホーム画面に移動
+                showScreen("admin-home-screen");
                 showAdminScreen();
             } else {
                 document.getElementById("admin-error-msg").textContent = "IDまたはパスワードが間違っています";
@@ -222,10 +190,8 @@
 
         function logout() {
             localStorage.removeItem("isLoggedIn");
-            showScreen("login-screen");  // ログイン画面に移動
+            showScreen("login-screen");
         }
-
-
 
         function startGame(size) {
             gridSize = size;
@@ -250,13 +216,43 @@
                 const tileDiv = document.createElement('div');
                 tileDiv.classList.add('tile');
                 if (tile === null) {
+                    tileDiv.classList.add
                     tileDiv.classList.add('empty');
+                    emptyTileIndex = index;
                 } else {
                     tileDiv.textContent = tile;
-                    tileDiv.addEventListener('click', () => tryMoveTile(index));
+                    tileDiv.addEventListener('click', () => moveTile(index));
                 }
                 puzzle.appendChild(tileDiv);
             });
+        }
+
+        function moveTile(index) {
+            if (canMoveTile(index)) {
+                [tiles[emptyTileIndex], tiles[index]] = [tiles[index], tiles[emptyTileIndex]];
+                emptyTileIndex = index;
+                renderPuzzle();
+                if (checkWin()) {
+                    clearInterval(timerInterval);
+                    alert("おめでとうございます！パズルを解きました！");
+                    document.getElementById("retry-btn").style.display = 'block';
+                }
+            }
+        }
+
+        function canMoveTile(index) {
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+            const emptyRow = Math.floor(emptyTileIndex / gridSize);
+            const emptyCol = emptyTileIndex % gridSize;
+            return Math.abs(row - emptyRow) + Math.abs(col - emptyCol) === 1;
+        }
+
+        function checkWin() {
+            for (let i = 0; i < tiles.length - 1; i++) {
+                if (tiles[i] !== i + 1) return false;
+            }
+            return tiles[tiles.length - 1] === null;
         }
 
         function shuffle(array) {
@@ -267,59 +263,35 @@
             return array;
         }
 
-        function tryMoveTile(index) {
-            if (!startTime) startTimer();
-            const row = Math.floor(index / gridSize);
-            const col = index % gridSize;
-            if (row > 0 && tiles[index - gridSize] === null) {
-                moveTile(index, index - gridSize);
-            } else if (row < gridSize - 1 && tiles[index + gridSize] === null) {
-                moveTile(index, index + gridSize);
-            } else if (col > 0 && tiles[index - 1] === null) {
-                moveTile(index, index - 1);
-            } else if (col < gridSize - 1 && tiles[index + 1] === null) {
-                moveTile(index, index + 1);
-            }
-       
-        function moveTile(fromIndex, toIndex) {
-            [tiles[fromIndex], tiles[toIndex]] = [tiles[toIndex], tiles[fromIndex]];
-            renderPuzzle();
-            checkWin();
-        }
-
-        function checkWin() {
-            const isComplete = tiles.slice(0, -1).every((tile, index) => tile === index + 1);
-            if (isComplete) {
-                clearInterval(timerInterval);
-                alert(`おめでとうございます！${gridSize}×${gridSize}パズルをクリアしました！\nクリアタイム: ${document.getElementById("timer").textContent.replace('経過時間: ', '')}`);
-                document.getElementById("retry-btn").style.display = 'block';
-            }
-        }
-
-        function startTimer() {
-            startTime = Date.now();
-            timerInterval = setInterval(() => {
-                const elapsed = Date.now() - startTime;
-                const minutes = Math.floor(elapsed / 60000);
-                const seconds = Math.floor((elapsed % 60000) / 1000);
-                document.getElementById("timer").textContent = `経過時間: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        function resetTimer() {
-            clearInterval(timerInterval);
-            startTime = null;
-            document.getElementById("timer").textContent = "経過時間: 00:00";
-        }
-
         function retry() {
             initializePuzzle();
         }
 
         function goToHome() {
-            resetTimer();
+            clearInterval(timerInterval);
             showScreen("home-screen");
         }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
+            const seconds = String(elapsedTime % 60).padStart(2, '0');
+            document.getElementById("timer").textContent = `経過時間: ${minutes}:${seconds}`;
+        }
+
+        // 初期画面の設定
+        if (localStorage.getItem("isLoggedIn") === "true") {
+            showScreen("home-screen");
+        } else {
+            showScreen("login-screen");
+        }
     </script>
+
 </body>
 </html>
