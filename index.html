@@ -93,6 +93,19 @@
     <input id="admin-password" type="password" placeholder="管理者パスワード"><br>
     <button onclick="adminLogin()">ログイン</button>
     <button onclick="showScreen('login-screen')">戻る</button>
+    <p style="font-size:small; color:gray; margin-top:10px;">
+      ※管理者ログイン用ID: <strong>Admin</strong> / パスワード: <strong>Password0924</strong>
+    </p>
+  </div>
+
+  <!-- ホーム画面（難易度選択画面） -->
+  <div id="home-screen" class="screen">
+    <h2>ホーム画面</h2>
+    <p>難易度を選んでください:</p>
+    <button onclick="startGame(3)">Easy (3×3)</button>
+    <button onclick="startGame(4)">Normal (4×4)</button>
+    <button onclick="startGame(5)">Hard (5×5)</button>
+    <button onclick="logout()">ログアウト</button>
   </div>
 
   <!-- ゲーム画面 -->
@@ -129,9 +142,8 @@
       if (users[username] && users[username] === password) {
         currentUser = username;
         alert(`${username}さん、ようこそ！`);
-        showScreen("game-screen");
-        initializePuzzle();
-        resetTimer();
+        // ホーム画面で難易度選択を表示する
+        showScreen("home-screen");
       } else {
         alert("ユーザー名またはパスワードが間違っています。");
       }
@@ -170,11 +182,23 @@
       }
     }
 
+    function logout() {
+      currentUser = null;
+      showScreen("login-screen");
+    }
+
     // ゲーム・パズル機能
-    let gridSize = 4; // デフォルトの盤面サイズ
+    let gridSize = 4; // デフォルトの盤面サイズ（ここでは「Normal」のみを初期値とする）
     let tiles = [];
     let emptyTileIndex;
     let timerInterval, startTime;
+
+    function startGame(size) {
+      gridSize = size;
+      initializePuzzle();
+      resetTimer();
+      showScreen("game-screen");
+    }
 
     function initializePuzzle() {
       // 1～(gridSize*gridSize - 1)の数値と空タイル(null)を用意
@@ -253,25 +277,11 @@
       }, 1000);
     }
 
-    // 「ホームに戻る」はログイン画面へ遷移（※管理者・ゲーム終了後も）
+    // 「ホームに戻る」はログイン画面へ遷移
     function goToLogin() {
       clearInterval(timerInterval);
       showScreen("login-screen");
     }
-
-    /* 
-      【旧Ver（参考用）】
-      もし新Verのパズル処理がうまくいかない場合は、以下の旧Verコードを参考にしてください。
-      
-      function initializePuzzle() {
-          tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1).concat(null);
-          tiles = shuffle(tiles);
-          renderPuzzle();
-          resetTimer();
-          document.getElementById("retry-btn").style.display = "none";
-      }
-      // …（旧Verの残りのコードは新Verとほぼ同様）
-    */
   </script>
 
   <div class="author">This Puzzle Game was developed with the support of ChatGPT.</div>
