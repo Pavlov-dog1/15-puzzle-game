@@ -1,277 +1,279 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>パズルゲーム</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
-        .screen { display: none; }
-        .visible { display: block; }
-        .tile {
-            width: 100px;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            border: 1px solid #ccc;
-            cursor: pointer;
-        }
-        .tile.empty { background-color: #f0f0f0; cursor: default; }
-        .timer { margin-bottom: 10px; font-size: 18px; }
-        .control-btns, .retry-btn { margin-top: 10px; }
-        .author { margin-top: 20px; font-size: small; color: gray; }
-        .grid {
-            display: grid;
-            gap: 5px;
-            margin-top: 20px;
-            padding: 10px;
-        }
-        .tile {
-            width: 100px;
-            height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #87CEEB;
-            font-size: 24px;
-            font-weight: bold;
-            color: #FFFFFF;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .tile.empty { background-color: transparent; cursor: default; }
-        .home-screen, .game-screen {
-            display: none;
-            text-align: center;
-            margin: 0 auto;
-            padding: 20px;
-            max-width: 400px;
-        }
-        .home-screen.visible, .game-screen.visible { display: block; }
-        .timer { font-size: 18px; margin-bottom: 10px; }
-        .retry-btn { margin-top: 20px; }
-        .difficulty-select {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>パズルゲーム</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    .screen { 
+      display: none; 
+    }
+    .visible { 
+      display: block; 
+    }
+    /* タイル・タイマー・グリッドなどのスタイル */
+    .tile {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      background-color: #87CEEB;
+      font-weight: bold;
+      color: #FFFFFF;
+      border-radius: 8px;
+    }
+    .tile.empty { 
+      background-color: transparent; 
+      cursor: default; 
+    }
+    .timer {
+      margin-bottom: 10px; 
+      font-size: 18px;
+    }
+    .grid {
+      display: grid;
+      gap: 5px;
+      margin-top: 20px;
+      padding: 10px;
+    }
+    button {
+      margin: 5px;
+    }
+    .author {
+      margin-top: 20px;
+      font-size: small;
+      color: gray;
+    }
+  </style>
 </head>
-<body onload="showScreen('home-screen')">
+<body onload="showScreen('login-screen')">
 
-    <!-- ホーム画面 -->
-    <div id="home-screen" class="screen">
-        <h1>スライドパズルゲーム</h1>
-        <button onclick="showScreen('login-screen')">ログイン</button>
-        <button onclick="showScreen('register-screen')">新規登録</button>
-        <button onclick="showScreen('admin-login-screen')">管理者ログイン</button>
-    </div>
+  <!-- ログイン画面（初期表示） -->
+  <div id="login-screen" class="screen visible">
+    <h2>ログイン</h2>
+    <input id="username" type="text" placeholder="ユーザー名"><br>
+    <input id="password" type="password" placeholder="パスワード"><br>
+    <button onclick="login()">ログイン</button>
+    <p>
+      新規登録の方は 
+      <a href="#" onclick="showScreen('register-screen')">こちら</a> をクリックしてください。
+    </p>
+    <p>
+      管理者ログインは 
+      <a href="#" onclick="showScreen('admin-login-screen')">こちら</a> から。
+    </p>
+  </div>
 
-    <!-- ログイン画面 -->
-    <div id="login-screen" class="screen">
-        <h2>ログイン</h2>
-        <input id="username" type="text" placeholder="ユーザー名"><br>
-        <input id="password" type="password" placeholder="パスワード"><br>
-        <button onclick="login()">ログイン</button>
-        <button onclick="showScreen('home-screen')">戻る</button>
-    </div>
+  <!-- 新規登録画面 -->
+  <div id="register-screen" class="screen">
+    <h2>新規登録</h2>
+    <input id="new-username" type="text" placeholder="新しいユーザー名"><br>
+    <input id="new-password" type="password" placeholder="新しいパスワード"><br>
+    <button onclick="register()">登録</button>
+    <button onclick="showScreen('login-screen')">戻る</button>
+  </div>
 
-    <!-- 新規登録画面 -->
-    <div id="register-screen" class="screen">
-        <h2>新規登録</h2>
-        <input id="new-username" type="text" placeholder="新しいユーザー名"><br>
-        <input id="new-password" type="password" placeholder="新しいパスワード"><br>
-        <button onclick="register()">登録</button>
-        <button onclick="showScreen('home-screen')">戻る</button>
-    </div>
+  <!-- 管理者ログイン画面 -->
+  <div id="admin-login-screen" class="screen">
+    <h2>管理者ログイン</h2>
+    <input id="admin-username" type="text" placeholder="管理者ID"><br>
+    <input id="admin-password" type="password" placeholder="管理者パスワード"><br>
+    <button onclick="adminLogin()">ログイン</button>
+    <button onclick="showScreen('login-screen')">戻る</button>
+  </div>
 
-    <!-- 管理者ログイン画面 -->
-    <div id="admin-login-screen" class="screen">
-        <h2>管理者ログイン</h2>
-        <input id="admin-username" type="text" placeholder="管理者ID"><br>
-        <input id="admin-password" type="password" placeholder="管理者パスワード"><br>
-        <button onclick="adminLogin()">ログイン</button>
-        <button onclick="showScreen('home-screen')">戻る</button>
-    </div>
+  <!-- ゲーム画面 -->
+  <div id="game-screen" class="screen">
+    <div id="puzzle" class="grid"></div>
+    <div id="timer" class="timer">経過時間: 00:00</div>
+    <button id="retry-btn" onclick="retry()" style="display: none;">リトライ</button>
+    <button onclick="goToLogin()">ホームに戻る</button>
+  </div>
 
-    <!-- ゲーム画面 -->
-    <div id="game-screen" class="screen">
-        <div id="puzzle"></div>
-        <div id="timer">経過時間: 00:00</div>
-        <button onclick="retry()">リトライ</button>
-        <button onclick="goToHome()">ホームに戻る</button>
-    </div>
+  <!-- ユーザー管理画面（管理者専用） -->
+  <div id="admin-screen" class="screen">
+    <h2>ユーザー管理画面</h2>
+    <ul id="user-list"></ul>
+    <button onclick="showScreen('login-screen')">ホームに戻る</button>
+  </div>
 
-    <!-- ユーザー管理画面 -->
-    <div id="admin-screen" class="screen">
-        <h2>ユーザー管理画面</h2>
-        <ul id="user-list"></ul>
-        <button onclick="showScreen('home-screen')">ホームに戻る</button>
-    </div>
+  <script>
+    // 各画面の表示切替処理
+    const screens = document.querySelectorAll(".screen");
+    function showScreen(screenId) {
+      screens.forEach(screen => screen.classList.remove("visible"));
+      document.getElementById(screenId).classList.add("visible");
+    }
 
-    <script>
-        const screens = document.querySelectorAll(".screen");
-        let users = {}; // ユーザー情報を保存するオブジェクト
-        let currentUser = null;
-        let adminCredentials = { username: "Admin", password: "Password0924" };
+    // ユーザー情報の管理
+    let users = {}; // ユーザー情報を保存するオブジェクト
+    let currentUser = null;
+    const adminCredentials = { username: "Admin", password: "Password0924" };
 
-        function showScreen(screenId) {
-            screens.forEach(screen => screen.style.display = "none");
-            document.getElementById(screenId).style.display = "block";
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      if (users[username] && users[username] === password) {
+        currentUser = username;
+        alert(`${username}さん、ようこそ！`);
+        showScreen("game-screen");
+        initializePuzzle();
+        resetTimer();
+      } else {
+        alert("ユーザー名またはパスワードが間違っています。");
+      }
+    }
+
+    function register() {
+      const newUsername = document.getElementById("new-username").value;
+      const newPassword = document.getElementById("new-password").value;
+      if (!users[newUsername]) {
+        users[newUsername] = newPassword;
+        alert("登録が完了しました！");
+        showScreen("login-screen");
+      } else {
+        alert("このユーザー名は既に使用されています。");
+      }
+    }
+
+    function adminLogin() {
+      const adminUsername = document.getElementById("admin-username").value;
+      const adminPassword = document.getElementById("admin-password").value;
+      if (adminUsername === adminCredentials.username && adminPassword === adminCredentials.password) {
+        showScreen("admin-screen");
+        displayUserList();
+      } else {
+        alert("管理者IDまたはパスワードが間違っています。");
+      }
+    }
+
+    function displayUserList() {
+      const userList = document.getElementById("user-list");
+      userList.innerHTML = "";
+      for (const username in users) {
+        const li = document.createElement("li");
+        li.textContent = username;
+        userList.appendChild(li);
+      }
+    }
+
+    // ゲーム・パズル機能
+    let gridSize = 4; // デフォルトの盤面サイズ
+    let tiles = [];
+    let emptyTileIndex;
+    let timerInterval, startTime;
+
+    function initializePuzzle() {
+      // 1～(gridSize*gridSize - 1)の数値と空タイル(null)を用意
+      tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1).concat(null);
+      tiles = shuffle(tiles);
+      renderPuzzle();
+      resetTimer();
+      document.getElementById("retry-btn").style.display = "none";
+    }
+
+    function renderPuzzle() {
+      const puzzle = document.getElementById("puzzle");
+      puzzle.innerHTML = "";
+      puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`;
+      puzzle.style.gridTemplateRows = `repeat(${gridSize}, 100px)`;
+      tiles.forEach((tile, index) => {
+        const tileElement = document.createElement("div");
+        tileElement.className = "tile";
+        tileElement.textContent = tile !== null ? tile : "";
+        if (tile === null) {
+          tileElement.classList.add("empty");
+          emptyTileIndex = index;
         }
+        tileElement.addEventListener("click", () => moveTile(index));
+        puzzle.appendChild(tileElement);
+      });
+    }
 
-        function login() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-            if (users[username] && users[username] === password) {
-                currentUser = username;
-                alert(`${username}さん、ようこそ！`);
-                showScreen("game-screen");
-                initializePuzzle();
-                resetTimer();
-            } else {
-                alert("ユーザー名またはパスワードが間違っています。");
-            }
-        }
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
 
-        function register() {
-            const newUsername = document.getElementById("new-username").value;
-            const newPassword = document.getElementById("new-password").value;
-            if (!users[newUsername]) {
-                users[newUsername] = newPassword;
-                alert("登録が完了しました！");
-                showScreen("home-screen");
-            } else {
-                alert("このユーザー名は既に使用されています。");
-            }
-        }
+    function moveTile(index) {
+      const row = Math.floor(index / gridSize);
+      const col = index % gridSize;
+      const emptyRow = Math.floor(emptyTileIndex / gridSize);
+      const emptyCol = emptyTileIndex % gridSize;
+      if ((Math.abs(row - emptyRow) + Math.abs(col - emptyCol)) === 1) {
+        [tiles[index], tiles[emptyTileIndex]] = [tiles[emptyTileIndex], tiles[index]];
+        emptyTileIndex = index;
+        renderPuzzle();
+        if (isSolved()) endGame();
+      }
+    }
 
-        function adminLogin() {
-            const adminUsername = document.getElementById("admin-username").value;
-            const adminPassword = document.getElementById("admin-password").value;
-            if (adminUsername === adminCredentials.username && adminPassword === adminCredentials.password) {
-                showScreen("admin-screen");
-                displayUserList();
-            } else {
-                alert("管理者IDまたはパスワードが間違っています。");
-            }
-        }
+    function isSolved() {
+      for (let i = 0; i < tiles.length - 1; i++) {
+        if (tiles[i] !== i + 1) return false;
+      }
+      return true;
+    }
 
-        function displayUserList() {
-            const userList = document.getElementById("user-list");
-            userList.innerHTML = "";
-            for (const username in users) {
-                const li = document.createElement("li");
-                li.textContent = username;
-                userList.appendChild(li);
-            }
-        }
+    function endGame() {
+      clearInterval(timerInterval);
+      document.getElementById("retry-btn").style.display = "block";
+      alert(`おめでとうございます！クリアタイム: ${document.getElementById("timer").textContent}`);
+    }
 
-        // タイマー・パズル機能のコードはそのまま再利用
-        function logout() {
-            localStorage.removeItem("isLoggedIn");
-            showScreen("login-screen");
-        }
+    function retry() {
+      initializePuzzle();
+      resetTimer();
+    }
 
-        function startGame(size) {
-            gridSize = size;
-            initializePuzzle();
-            showScreen("game-screen");
-        }
+    function resetTimer() {
+      clearInterval(timerInterval);
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        const elapsedTime = Date.now() - startTime;
+        const minutes = String(Math.floor(elapsedTime / 60000)).padStart(2, "0");
+        const seconds = String(Math.floor((elapsedTime % 60000) / 1000)).padStart(2, "0");
+        document.getElementById("timer").textContent = `経過時間: ${minutes}:${seconds}`;
+      }, 1000);
+    }
 
-        function initializePuzzle() {
-            tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1).concat(null);
-            tiles = shuffle(tiles);
-            renderPuzzle();
-            resetTimer();
-            document.getElementById("retry-btn").style.display = 'none';
-        }
+    // 「ホームに戻る」はログイン画面へ遷移（※管理者・ゲーム終了後も）
+    function goToLogin() {
+      clearInterval(timerInterval);
+      showScreen("login-screen");
+    }
 
-        function renderPuzzle() {
-            const puzzle = document.getElementById
-            const puzzle = document.getElementById("puzzle");
-            puzzle.innerHTML = "";
-            puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`;
-            puzzle.style.gridTemplateRows = `repeat(${gridSize}, 100px)`;
+    /* 
+      【旧Ver（参考用）】
+      もし新Verのパズル処理がうまくいかない場合は、以下の旧Verコードを参考にしてください。
+      
+      function initializePuzzle() {
+          tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1).concat(null);
+          tiles = shuffle(tiles);
+          renderPuzzle();
+          resetTimer();
+          document.getElementById("retry-btn").style.display = "none";
+      }
+      // …（旧Verの残りのコードは新Verとほぼ同様）
+    */
+  </script>
 
-            tiles.forEach((tile, index) => {
-                const tileElement = document.createElement("div");
-                tileElement.className = "tile";
-                tileElement.textContent = tile !== null ? tile : "";
-                tileElement.classList.toggle("empty", tile === null);
-                tileElement.addEventListener("click", () => moveTile(index));
-                puzzle.appendChild(tileElement);
-                if (tile === null) emptyTileIndex = index;
-            });
-        }
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function moveTile(index) {
-            const row = Math.floor(index / gridSize);
-            const col = index % gridSize;
-            const emptyRow = Math.floor(emptyTileIndex / gridSize);
-            const emptyCol = emptyTileIndex % gridSize;
-
-            if ((Math.abs(row - emptyRow) + Math.abs(col - emptyCol)) === 1) {
-                [tiles[index], tiles[emptyTileIndex]] = [tiles[emptyTileIndex], tiles[index]];
-                emptyTileIndex = index;
-                renderPuzzle();
-                if (isSolved()) endGame();
-            }
-        }
-
-        function isSolved() {
-            for (let i = 0; i < tiles.length - 1; i++) {
-                if (tiles[i] !== i + 1) return false;
-            }
-            return true;
-        }
-
-        function endGame() {
-            clearInterval(timerInterval);
-            document.getElementById("retry-btn").style.display = 'block';
-            alert(`おめでとうございます！クリアタイム: ${document.getElementById("timer").textContent}`);
-        }
-
-        function retry() {
-            initializePuzzle();
-            resetTimer();
-        }
-
-        function resetTimer() {
-            clearInterval(timerInterval);
-            startTime = Date.now();
-            timerInterval = setInterval(() => {
-                const elapsedTime = Date.now() - startTime;
-                const minutes = String(Math.floor(elapsedTime / 60000)).padStart(2, '0');
-                const seconds = String(Math.floor((elapsedTime % 60000) / 1000)).padStart(2, '0');
-                document.getElementById("timer").textContent = `経過時間: ${minutes}:${seconds}`;
-            }, 1000);
-        }
-
-        function goToHome() {
-            clearInterval(timerInterval);
-            showScreen("home-screen");
-        }
-    </script>
-
+  <div class="author">This Puzzle Game was developed with the support of ChatGPT.</div>
 </body>
 </html>
