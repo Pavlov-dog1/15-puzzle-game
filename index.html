@@ -112,6 +112,7 @@
   <div id="game-screen" class="screen">
     <div id="puzzle" class="grid"></div>
     <div id="timer" class="timer">経過時間: 00:00</div>
+    <button id="start-btn" onclick="startGameTimer()">スタート</button>
     <button id="retry-btn" onclick="retry()" style="display: none;">リトライ</button>
     <!-- ゲーム終了後はホーム画面（難易度選択）に戻る -->
     <button onclick="goToHome()">ホームに戻る</button>
@@ -198,8 +199,12 @@
     function startGame(size) {
       gridSize = size;
       initializePuzzle();
-      resetTimer();
+      // ゲーム画面に遷移するが、タイマーはスタートボタン押下時に開始する
       showScreen("game-screen");
+      // スタートボタンを表示する
+      document.getElementById("start-btn").style.display = "block";
+      // タイマーをリセットして表示更新
+      resetTimer();
     }
 
     function initializePuzzle() {
@@ -266,10 +271,19 @@
     function retry() {
       initializePuzzle();
       resetTimer();
+      // スタートボタンを再表示
+      document.getElementById("start-btn").style.display = "block";
     }
 
     function resetTimer() {
       clearInterval(timerInterval);
+      startTime = Date.now();
+      document.getElementById("timer").textContent = "経過時間: 00:00";
+    }
+
+    // スタートボタン押下でタイマー開始
+    function startGameTimer() {
+      // タイマーを開始
       startTime = Date.now();
       timerInterval = setInterval(() => {
         const elapsedTime = Date.now() - startTime;
@@ -277,6 +291,8 @@
         const seconds = String(Math.floor((elapsedTime % 60000) / 1000)).padStart(2, "0");
         document.getElementById("timer").textContent = `経過時間: ${minutes}:${seconds}`;
       }, 1000);
+      // スタートボタンを非表示にする
+      document.getElementById("start-btn").style.display = "none";
     }
 
     // ゲーム画面の「ホームに戻る」はホーム画面（難易度選択画面）に遷移
