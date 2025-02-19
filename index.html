@@ -48,8 +48,7 @@
       gap: 5px;
       margin-top: 20px;
       padding: 10px;
-      /* 初期状態はクリック無効 */
-      pointer-events: none;
+      /* pointer-eventsは設定せず、処理で制御します */
     }
     button {
       margin: 5px;
@@ -196,22 +195,19 @@
     let tiles = [];
     let emptyTileIndex;
     let timerInterval, startTime;
-    // ゲーム開始フラグ（今回は pointer-events で制御するので不要ですが、参照用に残しておきます）
+    // ゲーム開始フラグ（スタートボタン押下前は false）
     let gameStarted = false;
 
     // startGame()は難易度選択ボタンから呼ばれます
     function startGame(size) {
       gridSize = size;
       initializePuzzle();
-      // ゲーム画面に遷移するが、タイマーはスタートボタン押下時に開始する
+      // ゲーム画面に遷移。タイマーはスタートボタン押下時に開始する。
       showScreen("game-screen");
       // スタートボタンを表示し、ゲーム開始フラグをリセット
       document.getElementById("start-btn").style.display = "block";
       gameStarted = false;
-      // タイマーをリセットして表示更新
       resetTimer();
-      // パズル領域のクリックを無効にする
-      document.getElementById("puzzle").style.pointerEvents = "none";
     }
 
     function initializePuzzle() {
@@ -236,8 +232,9 @@
           tileElement.classList.add("empty");
           emptyTileIndex = index;
         }
-        // クリックイベントは pointer-events で制御しているため、ここでは通常の設定
+        // タイルクリック時、ゲーム開始済みでない場合は何もしない
         tileElement.addEventListener("click", () => {
+          if (!gameStarted) return;
           moveTile(index);
         });
         puzzle.appendChild(tileElement);
@@ -253,6 +250,7 @@
     }
 
     function moveTile(index) {
+      if (!gameStarted) return; // 追加チェック
       const row = Math.floor(index / gridSize);
       const col = index % gridSize;
       const emptyRow = Math.floor(emptyTileIndex / gridSize);
@@ -283,8 +281,6 @@
       resetTimer();
       gameStarted = false;
       document.getElementById("start-btn").style.display = "block";
-      // クリック無効状態に戻す
-      document.getElementById("puzzle").style.pointerEvents = "none";
     }
 
     function resetTimer() {
@@ -293,7 +289,7 @@
       document.getElementById("timer").textContent = "経過時間: 00:00";
     }
 
-    // スタートボタン押下でタイマー開始＆パズルへのクリックを有効にする
+    // スタートボタン押下でタイマー開始＆ゲーム開始フラグを true にする
     function startGameTimer() {
       startTime = Date.now();
       timerInterval = setInterval(() => {
@@ -303,8 +299,6 @@
         document.getElementById("timer").textContent = `経過時間: ${minutes}:${seconds}`;
       }, 1000);
       gameStarted = true;
-      // クリック有効化
-      document.getElementById("puzzle").style.pointerEvents = "auto";
       document.getElementById("start-btn").style.display = "none";
     }
 
