@@ -17,7 +17,7 @@
     .visible { 
       display: block; 
     }
-    /* ログイン、新規登録、管理者ログイン画面は中央に配置 */
+    /* 中央寄せ用クラス（ログイン、登録、管理者ログイン、ユーザー管理画面用） */
     .center-screen {
       display: flex;
       flex-direction: column;
@@ -26,7 +26,7 @@
       height: 100vh;
       text-align: center;
     }
-    /* ホーム画面全体 */
+    /* ホーム画面（ゲーム一覧）のスタイル */
     #home-screen {
       max-width: 700px;
       margin: 0 auto;
@@ -36,7 +36,6 @@
       text-align: center;
       margin-bottom: 20px;
     }
-    /* 各ゲーム項目のレイアウト */
     .game-list {
       margin-top: 20px;
     }
@@ -50,7 +49,6 @@
       box-shadow: 0px 2px 4px rgba(0,0,0,0.1);
       min-height: 80px;
     }
-    /* 各ゲーム項目の個別背景色 */
     .game-15puzzle {
       background-color: #f0f8ff; /* AliceBlue */
     }
@@ -100,11 +98,20 @@
       background-color: #d32f2f;
     }
     /* ゲーム画面（15パズル用）のスタイル */
-    .grid {
+    #game-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    #puzzle-container {
       position: relative;
+      /* gridサイズは盤面サイズに応じて設定される（JavaScriptで上書き） */
+    }
+    .grid {
       display: grid;
       gap: 5px;
-      margin-top: 20px;
       padding: 10px;
     }
     .tile {
@@ -131,7 +138,7 @@
       margin-bottom: 10px; 
       font-size: 18px;
     }
-    /* 共通のボタンスタイルは基本的に維持 */
+    /* 共通のボタンスタイルは維持 */
     button {
       margin: 5px;
     }
@@ -209,11 +216,14 @@
 
   <!-- ゲーム画面（15パズル用） -->
   <div id="game-screen" class="screen">
-    <div id="puzzle" class="grid"></div>
-    <div id="timer" class="timer">経過時間: 00:00</div>
-    <button id="start-btn" onclick="startGameTimer()">スタート</button>
-    <button id="retry-btn" onclick="retry()" style="display: none;">リトライ</button>
-    <button onclick="goToHome()">ホームに戻る</button>
+    <!-- ゲーム画面全体を中央寄せ -->
+    <div id="game-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+      <div id="puzzle" class="grid"></div>
+      <div id="timer" class="timer">経過時間: 00:00</div>
+      <button id="start-btn" onclick="startGameTimer()">スタート</button>
+      <button id="retry-btn" onclick="retry()" style="display: none;">リトライ</button>
+      <button onclick="goToHome()">ホームに戻る</button>
+    </div>
   </div>
 
   <!-- ユーザー管理画面 -->
