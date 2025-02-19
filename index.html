@@ -34,7 +34,6 @@
       font-weight: bold;
       color: #FFFFFF;
       border-radius: 8px;
-      /* ※位置指定は renderPuzzle() で inline style により行う */
     }
     .tile.empty { 
       background-color: transparent; 
@@ -49,7 +48,6 @@
       gap: 5px;
       margin-top: 20px;
       padding: 10px;
-      position: relative; /* 必要に応じて */
     }
     button {
       margin: 5px;
@@ -75,7 +73,7 @@
       margin-bottom: 15px;
     }
     .game-item {
-      background-color: #f0fbff; /* 薄い背景色。各項目ごとに変えたい場合はクラスで調整可能 */
+      background-color: #f0fbff;
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -97,7 +95,7 @@
     }
   </style>
 </head>
-<body onload="showScreen('login-screen')">
+<body onload="checkAutoLogin()">
 
   <!-- ログイン画面 -->
   <div id="login-screen" class="screen visible">
@@ -235,16 +233,26 @@
 
       // もし解けない状態なら、任意の2つの非空タイルを交換して調整
       if (!isSolvable(arr, gridSize)) {
-        // 非空タイルの最初の2個を探す
         let idx1 = arr.findIndex(x => x !== null);
         let idx2 = arr.findIndex((x, i) => x !== null && i !== idx1);
-        // 交換する
         [arr[idx1], arr[idx2]] = [arr[idx2], arr[idx1]];
       }
       return arr;
     }
 
-    // ----- ゲーム・画面切替、ログインなどの処理 -----
+    // ----- ユーザー情報の永続化用（localStorage利用） -----
+
+    function saveLoggedInUser(username) {
+      localStorage.setItem("loggedInUser", username);
+    }
+    function getLoggedInUser() {
+      return localStorage.getItem("loggedInUser");
+    }
+    function clearLoggedInUser() {
+      localStorage.removeItem("loggedInUser");
+    }
+
+    // ----- 画面切替、ログインなどの処理 -----
 
     const screens = document.querySelectorAll(".screen");
     function showScreen(screenId) {
@@ -252,7 +260,7 @@
       document.getElementById(screenId).classList.add("visible");
     }
 
-    // ユーザー情報の管理（現段階ではメモリ上のみ）
+    // ユーザー情報の管理（現段階ではメモリ上とlocalStorage）
     let users = {};
     let currentUser = null;
     const adminCredentials = { username: "Admin", password: "Password0924" };
@@ -262,6 +270,7 @@
       const password = document.getElementById("password").value;
       if (users[username] && users[username] === password) {
         currentUser = username;
+        saveLoggedInUser(username);
         alert(`${username}さん、ようこそ！`);
         showScreen("home-screen");
       } else {
@@ -304,12 +313,24 @@
 
     function logout() {
       currentUser = null;
+      clearLoggedInUser();
       showScreen("login-screen");
+    }
+
+    // 自動ログインチェック（ページ読み込み時）
+    function checkAutoLogin() {
+      const savedUser = getLoggedInUser();
+      if (savedUser && users[savedUser]) {
+        currentUser = savedUser;
+        showScreen("home-screen");
+      } else {
+        showScreen("login-screen");
+      }
     }
 
     // ----- ゲーム・パズル機能 -----
 
-    let gridSize = 4; // 初期はNormal（4×4）; 3×3なら3、5×5なら5を指定
+    let gridSize = 4; // 初期はNormal（4×4）；3×3なら3、5×5なら5
     let tiles = [];
     let emptyTileIndex;
     let timerInterval, startTime;
@@ -318,11 +339,9 @@
     // startGame() は難易度選択ボタンから呼ばれる
     function startGame(size) {
       gridSize = size;
-      // 解ける状態の盤面を生成
       tiles = generateSolvablePuzzle(gridSize);
       renderPuzzle();
       resetTimer();
-      // ゲーム画面へ遷移、タイマーはスタートボタン押下まで開始しない
       showScreen("game-screen");
       document.getElementById("start-btn").style.display = "block";
       gameStarted = false;
@@ -333,7 +352,6 @@
       puzzle.innerHTML = "";
       puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`;
       puzzle.style.gridTemplateRows = `repeat(${gridSize}, 100px)`;
-      // 配列 tiles を走査してタイル要素を作成
       tiles.forEach((tile, index) => {
         const tileElement = document.createElement("div");
         tileElement.className = "tile";
@@ -342,7 +360,6 @@
           tileElement.classList.add("empty");
           emptyTileIndex = index;
         }
-        // スタート前はクリック無効（gameStartedがfalseなら何もしない）
         tileElement.addEventListener("click", () => {
           if (!gameStarted) return;
           moveTile(index);
@@ -366,25 +383,45 @@
     }
 
     function isSolved() {
-      // ゴール状態：数字が 1 から (gridSize*gridSize - 1) の順序、最後が null
       for (let i = 0; i < tiles.length - 1; i++) {
         if (tiles[i] !== i + 1) return false;
       }
       return true;
     }
 
+    // 最高記録（ベストタイム）の保存キーは "bestRecord_15_{gridSize}"
+    function formatTimeFromSeconds(seconds) {
+      const sec = Math.floor(seconds);
+      const minutes = String(Math.floor(sec / 60)).padStart(2, "0");
+      const secs = String(sec % 60).padStart(2, "0");
+      return `${minutes}:${secs}`;
+    }
+
     function endGame() {
       clearInterval(timerInterval);
-      // 最後の手を実行した瞬間のタイムを保持
-      const finalTime = document.getElementById("timer").textContent;
-      // 最新の盤面（最終状態）を再描画
+      // 終了時の経過時間（ミリ秒）
+      const elapsedMs = Date.now() - startTime;
+      const finalTimeSec = elapsedMs / 1000;
+      const minutes = String(Math.floor(elapsedMs / 60000)).padStart(2, "0");
+      const seconds = String(Math.floor((elapsedMs % 60000) / 1000)).padStart(2, "0");
+      const formattedTime = `${minutes}:${seconds}`;
+      // 最高記録キー
+      const key = "bestRecord_15_" + gridSize;
+      const storedBest = localStorage.getItem(key);
+      let message = `おめでとうございます！クリアタイム: ${formattedTime}`;
+      if (storedBest === null || finalTimeSec < parseFloat(storedBest)) {
+        localStorage.setItem(key, finalTimeSec);
+        message += "\n新記録おめでとうございます！";
+      } else {
+        message += `\n現在の最高記録: ${formatTimeFromSeconds(storedBest)}`;
+      }
+      // 最終状態を再描画
       renderPuzzle();
       document.getElementById("retry-btn").style.display = "block";
-      alert(`おめでとうございます！クリアタイム: ${finalTime}`);
+      alert(message);
     }
 
     function retry() {
-      // 同じ難易度で再生成
       tiles = generateSolvablePuzzle(gridSize);
       renderPuzzle();
       resetTimer();
