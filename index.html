@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>パズルゲーム（解ける盤面生成付き）</title>
+  <title>パズルゲーム（解ける盤面生成＆永続化機能付き）</title>
   <style>
     body {
       display: flex;
@@ -149,12 +149,12 @@
       </div>
       <!-- ○○ゲーム（未実装） -->
       <div class="game-item">
-        <div class="game-title">○○ゲーム</div>
+        <div class="game-title">未実装</div>
         <div class="under-construction">Under Construction</div>
       </div>
       <!-- △△ゲーム（未実装） -->
       <div class="game-item">
-        <div class="game-title">△△ゲーム</div>
+        <div class="game-title">未実装</div>
         <div class="under-construction">Under Construction</div>
       </div>
     </div>
@@ -242,6 +242,15 @@
 
     // ----- ユーザー情報の永続化用（localStorage利用） -----
 
+    function saveUsers() {
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+    function loadUsers() {
+      const stored = localStorage.getItem("users");
+      if (stored) {
+        users = JSON.parse(stored);
+      }
+    }
     function saveLoggedInUser(username) {
       localStorage.setItem("loggedInUser", username);
     }
@@ -260,8 +269,18 @@
       document.getElementById(screenId).classList.add("visible");
     }
 
-    // ユーザー情報の管理（現段階ではメモリ上とlocalStorage）
-    let users = {};
+    // ページ読み込み時にユーザー情報を復元し、自動ログインをチェック
+    function checkAutoLogin() {
+      loadUsers();
+      const savedUser = getLoggedInUser();
+      if (savedUser && users[savedUser]) {
+        currentUser = savedUser;
+        showScreen("home-screen");
+      } else {
+        showScreen("login-screen");
+      }
+    }
+
     let currentUser = null;
     const adminCredentials = { username: "Admin", password: "Password0924" };
 
@@ -283,6 +302,7 @@
       const newPassword = document.getElementById("new-password").value;
       if (!users[newUsername]) {
         users[newUsername] = newPassword;
+        saveUsers();
         alert("登録が完了しました！");
         showScreen("login-screen");
       } else {
@@ -317,17 +337,6 @@
       showScreen("login-screen");
     }
 
-    // 自動ログインチェック（ページ読み込み時）
-    function checkAutoLogin() {
-      const savedUser = getLoggedInUser();
-      if (savedUser && users[savedUser]) {
-        currentUser = savedUser;
-        showScreen("home-screen");
-      } else {
-        showScreen("login-screen");
-      }
-    }
-
     // ----- ゲーム・パズル機能 -----
 
     let gridSize = 4; // 初期はNormal（4×4）；3×3なら3、5×5なら5
@@ -336,7 +345,6 @@
     let timerInterval, startTime;
     let gameStarted = false;
 
-    // startGame() は難易度選択ボタンから呼ばれる
     function startGame(size) {
       gridSize = size;
       tiles = generateSolvablePuzzle(gridSize);
@@ -389,7 +397,8 @@
       return true;
     }
 
-    // 最高記録（ベストタイム）の保存キーは "bestRecord_15_{gridSize}"
+    // ----- 最高記録（ベストタイム）永続化用 -----
+    // キーは "bestRecord_15_{gridSize}"
     function formatTimeFromSeconds(seconds) {
       const sec = Math.floor(seconds);
       const minutes = String(Math.floor(sec / 60)).padStart(2, "0");
@@ -399,13 +408,13 @@
 
     function endGame() {
       clearInterval(timerInterval);
-      // 終了時の経過時間（ミリ秒）
+      // 最後の手を実行した瞬間の経過時間（ミリ秒）
       const elapsedMs = Date.now() - startTime;
       const finalTimeSec = elapsedMs / 1000;
       const minutes = String(Math.floor(elapsedMs / 60000)).padStart(2, "0");
       const seconds = String(Math.floor((elapsedMs % 60000) / 1000)).padStart(2, "0");
       const formattedTime = `${minutes}:${seconds}`;
-      // 最高記録キー
+      // 最高記録の保存キー（例："bestRecord_15_4"）
       const key = "bestRecord_15_" + gridSize;
       const storedBest = localStorage.getItem(key);
       let message = `おめでとうございます！クリアタイム: ${formattedTime}`;
