@@ -17,16 +17,26 @@
     .visible { 
       display: block; 
     }
+    /* ログイン、新規登録、管理者ログイン画面は中央に配置 */
+    .center-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
     /* ホーム画面全体 */
     #home-screen {
       max-width: 700px;
       margin: 0 auto;
+      padding: 20px;
     }
     #home-screen h1 {
       text-align: center;
       margin-bottom: 20px;
     }
-    /* ゲーム一覧のレイアウト */
+    /* 各ゲーム項目のレイアウト */
     .game-list {
       margin-top: 20px;
     }
@@ -38,10 +48,9 @@
       padding: 15px;
       margin-bottom: 15px;
       box-shadow: 0px 2px 4px rgba(0,0,0,0.1);
-      /* 固定の高さを設定して、項目の大きさを揃える */
       min-height: 80px;
     }
-    /* 個別の背景色（薄い色） */
+    /* 各ゲーム項目の個別背景色 */
     .game-15puzzle {
       background-color: #f0f8ff; /* AliceBlue */
     }
@@ -56,7 +65,6 @@
       font-size: 18px;
       flex: 1;
     }
-    /* 難易度選択ボタン群 */
     .game-difficulty button {
       margin-left: 5px;
       padding: 8px 12px;
@@ -70,7 +78,6 @@
     .game-difficulty button:hover {
       background-color: #45a049;
     }
-    /* UNDER CONSTRUCTION 表示 */
     .under-construction {
       font-size: 20px;
       color: #555;
@@ -78,7 +85,6 @@
       text-align: center;
       flex: 1;
     }
-    /* ログアウトボタン */
     .logout-btn {
       display: block;
       margin: 20px auto 0;
@@ -93,7 +99,14 @@
     .logout-btn:hover {
       background-color: #d32f2f;
     }
-    /* ゲーム画面（15パズル用）のスタイル（以下は以前の設定を維持） */
+    /* ゲーム画面（15パズル用）のスタイル */
+    .grid {
+      position: relative;
+      display: grid;
+      gap: 5px;
+      margin-top: 20px;
+      padding: 10px;
+    }
     .tile {
       width: 100px;
       height: 100px;
@@ -118,13 +131,7 @@
       margin-bottom: 10px; 
       font-size: 18px;
     }
-    .grid {
-      position: relative;
-      display: grid;
-      gap: 5px;
-      margin-top: 20px;
-      padding: 10px;
-    }
+    /* 共通のボタンスタイルは基本的に維持 */
     button {
       margin: 5px;
     }
@@ -132,29 +139,28 @@
       margin-top: 20px;
       font-size: small;
       color: gray;
+      text-align: center;
     }
   </style>
 </head>
 <body onload="showScreen('login-screen')">
 
   <!-- ログイン画面 -->
-  <div id="login-screen" class="screen visible">
+  <div id="login-screen" class="screen center-screen">
     <h2>ログイン</h2>
     <input id="username" type="text" placeholder="ユーザー名"><br>
     <input id="password" type="password" placeholder="パスワード"><br>
     <button onclick="login()">ログイン</button>
     <p>
-      新規登録の方は 
-      <a href="#" onclick="showScreen('register-screen')">こちら</a> をクリックしてください。
+      新規登録の方は <a href="#" onclick="showScreen('register-screen')">こちら</a>
     </p>
     <p>
-      管理者ログインは 
-      <a href="#" onclick="showScreen('admin-login-screen')">こちら</a> から。
+      管理者ログインは <a href="#" onclick="showScreen('admin-login-screen')">こちら</a>
     </p>
   </div>
 
   <!-- 新規登録画面 -->
-  <div id="register-screen" class="screen">
+  <div id="register-screen" class="screen center-screen">
     <h2>新規登録</h2>
     <input id="new-username" type="text" placeholder="新しいユーザー名"><br>
     <input id="new-password" type="password" placeholder="新しいパスワード"><br>
@@ -163,7 +169,7 @@
   </div>
 
   <!-- 管理者ログイン画面 -->
-  <div id="admin-login-screen" class="screen">
+  <div id="admin-login-screen" class="screen center-screen">
     <h2>管理者ログイン</h2>
     <input id="admin-username" type="text" placeholder="管理者ID"><br>
     <input id="admin-password" type="password" placeholder="管理者パスワード"><br>
@@ -187,12 +193,12 @@
           <button onclick="startGame(5)">Hard (5×5)</button>
         </div>
       </div>
-      <!-- ○○ゲームの項目（仮）：UNDER CONSTRUCTION 表示 -->
+      <!-- ○○ゲームの項目（仮） -->
       <div class="game-item game-xx">
         <div class="game-title">○○ゲーム</div>
         <div class="under-construction">UNDER CONSTRUCTION</div>
       </div>
-      <!-- △△ゲームの項目（仮）：UNDER CONSTRUCTION 表示 -->
+      <!-- △△ゲームの項目（仮） -->
       <div class="game-item game-△△">
         <div class="game-title">△△ゲーム</div>
         <div class="under-construction">UNDER CONSTRUCTION</div>
@@ -211,7 +217,7 @@
   </div>
 
   <!-- ユーザー管理画面 -->
-  <div id="admin-screen" class="screen">
+  <div id="admin-screen" class="screen center-screen">
     <h2>ユーザー管理画面</h2>
     <ul id="user-list"></ul>
     <button onclick="showScreen('login-screen')">ホームに戻る</button>
@@ -320,7 +326,7 @@
     }
 
     // ----- ゲーム・パズル機能 -----
-    let gridSize = 4; // 初期はNormal（4×4）; 3×3なら3、5×5なら5
+    let gridSize = 4;
     let tiles = [];
     let emptyTileIndex;
     let timerInterval, startTime;
