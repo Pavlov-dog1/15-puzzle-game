@@ -3,16 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>パズルゲーム（解ける盤面生成付き）</title>
+  <title>パズルゲーム ホーム</title>
   <style>
     body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+      background-color: #e0f7fa; /* 全体の背景色：薄い水色 */
       font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
     }
     .screen { 
       display: none; 
@@ -20,7 +17,83 @@
     .visible { 
       display: block; 
     }
-    /* タイル・タイマー・グリッドなどのスタイル */
+    /* ホーム画面全体 */
+    #home-screen {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    #home-screen h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    /* ゲーム一覧のレイアウト */
+    .game-list {
+      margin-top: 20px;
+    }
+    .game-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0px 2px 4px rgba(0,0,0,0.1);
+      /* 固定の高さを設定して、項目の大きさを揃える */
+      min-height: 80px;
+    }
+    /* 個別の背景色（薄い色） */
+    .game-15puzzle {
+      background-color: #f0f8ff; /* AliceBlue */
+    }
+    .game-xx {
+      background-color: #fff9c4; /* 薄い黄色 */
+    }
+    .game-△△ {
+      background-color: #e1f5fe; /* 薄い青 */
+    }
+    .game-title {
+      font-weight: bold;
+      font-size: 18px;
+      flex: 1;
+    }
+    /* 難易度選択ボタン群 */
+    .game-difficulty button {
+      margin-left: 5px;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    .game-difficulty button:hover {
+      background-color: #45a049;
+    }
+    /* UNDER CONSTRUCTION 表示 */
+    .under-construction {
+      font-size: 20px;
+      color: #555;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+    /* ログアウトボタン */
+    .logout-btn {
+      display: block;
+      margin: 20px auto 0;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #f44336;
+      color: white;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background-color: #d32f2f;
+    }
+    /* ゲーム画面（15パズル用）のスタイル（以下は以前の設定を維持） */
     .tile {
       width: 100px;
       height: 100px;
@@ -34,6 +107,8 @@
       font-weight: bold;
       color: #FFFFFF;
       border-radius: 8px;
+      position: absolute;
+      transition: transform 0.3s ease-in-out;
     }
     .tile.empty { 
       background-color: transparent; 
@@ -44,6 +119,7 @@
       font-size: 18px;
     }
     .grid {
+      position: relative;
       display: grid;
       gap: 5px;
       margin-top: 20px;
@@ -98,17 +174,34 @@
     </p>
   </div>
 
-  <!-- ホーム画面（難易度選択画面） -->
+  <!-- ホーム画面（ゲーム一覧） -->
   <div id="home-screen" class="screen">
-    <h2>ホーム画面</h2>
-    <p>難易度を選んでください:</p>
-    <button onclick="startGame(3)">Easy (3×3)</button>
-    <button onclick="startGame(4)">Normal (4×4)</button>
-    <button onclick="startGame(5)">Hard (5×5)</button>
-    <button onclick="logout()">ログアウト</button>
+    <h1>ゲーム一覧</h1>
+    <div class="game-list">
+      <!-- 15パズルの項目 -->
+      <div class="game-item game-15puzzle">
+        <div class="game-title">15パズル</div>
+        <div class="game-difficulty">
+          <button onclick="startGame(3)">Easy (3×3)</button>
+          <button onclick="startGame(4)">Normal (4×4)</button>
+          <button onclick="startGame(5)">Hard (5×5)</button>
+        </div>
+      </div>
+      <!-- ○○ゲームの項目（仮）：UNDER CONSTRUCTION 表示 -->
+      <div class="game-item game-xx">
+        <div class="game-title">○○ゲーム</div>
+        <div class="under-construction">UNDER CONSTRUCTION</div>
+      </div>
+      <!-- △△ゲームの項目（仮）：UNDER CONSTRUCTION 表示 -->
+      <div class="game-item game-△△">
+        <div class="game-title">△△ゲーム</div>
+        <div class="under-construction">UNDER CONSTRUCTION</div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="logout()">ログアウト</button>
   </div>
 
-  <!-- ゲーム画面 -->
+  <!-- ゲーム画面（15パズル用） -->
   <div id="game-screen" class="screen">
     <div id="puzzle" class="grid"></div>
     <div id="timer" class="timer">経過時間: 00:00</div>
@@ -126,8 +219,6 @@
 
   <script>
     // ----- 盤面生成（解ける状態のチェック・調整）用の関数群 -----
-
-    // 逆転数を計算（空タイル（null）は除外）
     function getInversionCount(arr) {
       let inversions = 0;
       const nums = arr.filter(x => x !== null);
@@ -138,15 +229,10 @@
       }
       return inversions;
     }
-
-    // 空タイルの上からの行番号（1-index）を取得
     function getBlankRowFromTop(arr, gridSize) {
       const blankIndex = arr.indexOf(null);
       return Math.floor(blankIndex / gridSize) + 1;
     }
-
-    // グリッド幅が奇数の場合（3×3, 5×5）は逆転数が偶数なら解ける
-    // グリッド幅が偶数の場合（4×4）は（逆転数 + 空タイルの上からの行番号）が偶数なら解ける
     function isSolvable(arr, gridSize) {
       const inversions = getInversionCount(arr);
       if (gridSize % 2 === 1) {
@@ -156,8 +242,6 @@
         return (inversions + blankRow) % 2 === 0;
       }
     }
-
-    // ランダムシャッフル（Fisher–Yatesアルゴリズム）
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -165,43 +249,30 @@
       }
       return array;
     }
-
-    // 解ける状態の盤面を生成する関数
     function generateSolvablePuzzle(gridSize) {
-      // 数字タイルは1～(gridSize*gridSize - 1)、空タイルはnull
       let arr = [];
       for (let i = 1; i < gridSize * gridSize; i++) {
         arr.push(i);
       }
       arr.push(null);
-      
-      // ランダムにシャッフル
       arr = shuffle(arr);
-
-      // もし解けない状態なら、任意の2つの非空タイルを交換して調整
       if (!isSolvable(arr, gridSize)) {
-        // 非空タイルの最初の2個を探す
         let idx1 = arr.findIndex(x => x !== null);
         let idx2 = arr.findIndex((x, i) => x !== null && i !== idx1);
-        // 交換する
         [arr[idx1], arr[idx2]] = [arr[idx2], arr[idx1]];
       }
       return arr;
     }
 
-    // ----- ゲーム・画面切替、ログインなどの処理 -----
-
+    // ----- 画面切替、ログインなどの処理 -----
     const screens = document.querySelectorAll(".screen");
     function showScreen(screenId) {
       screens.forEach(screen => screen.classList.remove("visible"));
       document.getElementById(screenId).classList.add("visible");
     }
-
-    // ユーザー情報の管理（現段階ではメモリ上のみ）
     let users = {};
     let currentUser = null;
     const adminCredentials = { username: "Admin", password: "Password0924" };
-
     function login() {
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
@@ -213,7 +284,6 @@
         alert("ユーザー名またはパスワードが間違っています。");
       }
     }
-
     function register() {
       const newUsername = document.getElementById("new-username").value;
       const newPassword = document.getElementById("new-password").value;
@@ -225,7 +295,6 @@
         alert("このユーザー名は既に使用されています。");
       }
     }
-
     function adminLogin() {
       const adminUsername = document.getElementById("admin-username").value;
       const adminPassword = document.getElementById("admin-password").value;
@@ -236,7 +305,6 @@
         alert("管理者IDまたはパスワードが間違っています。");
       }
     }
-
     function displayUserList() {
       const userList = document.getElementById("user-list");
       userList.innerHTML = "";
@@ -246,39 +314,31 @@
         userList.appendChild(li);
       }
     }
-
     function logout() {
       currentUser = null;
       showScreen("login-screen");
     }
 
     // ----- ゲーム・パズル機能 -----
-
-    let gridSize = 4; // 初期はNormal（4×4）; 3×3なら3、5×5なら5を指定
+    let gridSize = 4; // 初期はNormal（4×4）; 3×3なら3、5×5なら5
     let tiles = [];
     let emptyTileIndex;
     let timerInterval, startTime;
     let gameStarted = false;
-
-    // startGame() は難易度選択ボタンから呼ばれる
     function startGame(size) {
       gridSize = size;
-      // 解ける状態の盤面を生成
       tiles = generateSolvablePuzzle(gridSize);
       renderPuzzle();
       resetTimer();
-      // ゲーム画面へ遷移、タイマーはスタートボタン押下まで開始しない
       showScreen("game-screen");
       document.getElementById("start-btn").style.display = "block";
       gameStarted = false;
     }
-
     function renderPuzzle() {
       const puzzle = document.getElementById("puzzle");
       puzzle.innerHTML = "";
       puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`;
       puzzle.style.gridTemplateRows = `repeat(${gridSize}, 100px)`;
-      // 配列 tiles を走査してタイル要素を作成
       tiles.forEach((tile, index) => {
         const tileElement = document.createElement("div");
         tileElement.className = "tile";
@@ -287,7 +347,6 @@
           tileElement.classList.add("empty");
           emptyTileIndex = index;
         }
-        // スタート前はクリック無効（gameStartedがfalseなら何もしない）
         tileElement.addEventListener("click", () => {
           if (!gameStarted) return;
           moveTile(index);
@@ -295,7 +354,6 @@
         puzzle.appendChild(tileElement);
       });
     }
-
     function moveTile(index) {
       if (!gameStarted) return;
       const row = Math.floor(index / gridSize);
@@ -309,47 +367,31 @@
         if (isSolved()) endGame();
       }
     }
-
     function isSolved() {
-      // ゴール状態：数字が 1 から (gridSize*gridSize - 1) の順序、最後が null
       for (let i = 0; i < tiles.length - 1; i++) {
         if (tiles[i] !== i + 1) return false;
       }
       return true;
     }
-
     function endGame() {
       clearInterval(timerInterval);
-      document.getElementById("retry-btn").style.display = "block";
-      alert(`おめでとうございます！クリアタイム: ${document.getElementById("timer").textContent}`);
-    }
-    function endGame() {
-      clearInterval(timerInterval);
-      // 最後の手を実行した瞬間のタイムを保持
       const finalTime = document.getElementById("timer").textContent;
-      // 最新の盤面（最終状態）を再描画
       renderPuzzle();
       document.getElementById("retry-btn").style.display = "block";
       alert(`おめでとうございます！クリアタイム: ${finalTime}`);
     }
-
-
     function retry() {
-      // 同じ難易度で再生成
       tiles = generateSolvablePuzzle(gridSize);
       renderPuzzle();
       resetTimer();
       gameStarted = false;
       document.getElementById("start-btn").style.display = "block";
     }
-
     function resetTimer() {
       clearInterval(timerInterval);
       startTime = Date.now();
       document.getElementById("timer").textContent = "経過時間: 00:00";
     }
-
-    // スタートボタン押下でタイマー開始＆タイル操作を有効化
     function startGameTimer() {
       startTime = Date.now();
       timerInterval = setInterval(() => {
@@ -361,7 +403,6 @@
       gameStarted = true;
       document.getElementById("start-btn").style.display = "none";
     }
-
     function goToHome() {
       clearInterval(timerInterval);
       showScreen("home-screen");
