@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>パズルゲーム</title>
+  <title>パズルゲーム（解ける盤面生成付き）</title>
   <style>
     body {
       display: flex;
@@ -48,7 +48,6 @@
       gap: 5px;
       margin-top: 20px;
       padding: 10px;
-      /* pointer-eventsは設定せず、処理で制御します */
     }
     button {
       margin: 5px;
@@ -62,7 +61,7 @@
 </head>
 <body onload="showScreen('login-screen')">
 
-  <!-- ログイン画面（初期表示） -->
+  <!-- ログイン画面 -->
   <div id="login-screen" class="screen visible">
     <h2>ログイン</h2>
     <input id="username" type="text" placeholder="ユーザー名"><br>
@@ -115,11 +114,10 @@
     <div id="timer" class="timer">経過時間: 00:00</div>
     <button id="start-btn" onclick="startGameTimer()">スタート</button>
     <button id="retry-btn" onclick="retry()" style="display: none;">リトライ</button>
-    <!-- ゲーム終了後はホーム画面（難易度選択）に戻る -->
     <button onclick="goToHome()">ホームに戻る</button>
   </div>
 
-  <!-- ユーザー管理画面（管理者専用） -->
+  <!-- ユーザー管理画面 -->
   <div id="admin-screen" class="screen">
     <h2>ユーザー管理画面</h2>
     <ul id="user-list"></ul>
@@ -127,15 +125,80 @@
   </div>
 
   <script>
-    // 各画面の表示切替処理
+    // ----- 盤面生成（解ける状態のチェック・調整）用の関数群 -----
+
+    // 逆転数を計算（空タイル（null）は除外）
+    function getInversionCount(arr) {
+      let inversions = 0;
+      const nums = arr.filter(x => x !== null);
+      for (let i = 0; i < nums.length; i++) {
+        for (let j = i + 1; j < nums.length; j++) {
+          if (nums[i] > nums[j]) inversions++;
+        }
+      }
+      return inversions;
+    }
+
+    // 空タイルの上からの行番号（1-index）を取得
+    function getBlankRowFromTop(arr, gridSize) {
+      const blankIndex = arr.indexOf(null);
+      return Math.floor(blankIndex / gridSize) + 1;
+    }
+
+    // グリッド幅が奇数の場合（3×3, 5×5）は逆転数が偶数なら解ける
+    // グリッド幅が偶数の場合（4×4）は（逆転数 + 空タイルの上からの行番号）が偶数なら解ける
+    function isSolvable(arr, gridSize) {
+      const inversions = getInversionCount(arr);
+      if (gridSize % 2 === 1) {
+        return inversions % 2 === 0;
+      } else {
+        const blankRow = getBlankRowFromTop(arr, gridSize);
+        return (inversions + blankRow) % 2 === 0;
+      }
+    }
+
+    // ランダムシャッフル（Fisher–Yatesアルゴリズム）
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // 解ける状態の盤面を生成する関数
+    function generateSolvablePuzzle(gridSize) {
+      // 数字タイルは1～(gridSize*gridSize - 1)、空タイルはnull
+      let arr = [];
+      for (let i = 1; i < gridSize * gridSize; i++) {
+        arr.push(i);
+      }
+      arr.push(null);
+      
+      // ランダムにシャッフル
+      arr = shuffle(arr);
+
+      // もし解けない状態なら、任意の2つの非空タイルを交換して調整
+      if (!isSolvable(arr, gridSize)) {
+        // 非空タイルの最初の2個を探す
+        let idx1 = arr.findIndex(x => x !== null);
+        let idx2 = arr.findIndex((x, i) => x !== null && i !== idx1);
+        // 交換する
+        [arr[idx1], arr[idx2]] = [arr[idx2], arr[idx1]];
+      }
+      return arr;
+    }
+
+    // ----- ゲーム・画面切替、ログインなどの処理 -----
+
     const screens = document.querySelectorAll(".screen");
     function showScreen(screenId) {
       screens.forEach(screen => screen.classList.remove("visible"));
       document.getElementById(screenId).classList.add("visible");
     }
 
-    // ユーザー情報の管理
-    let users = {}; // ユーザー情報を保存するオブジェクト
+    // ユーザー情報の管理（現段階ではメモリ上のみ）
+    let users = {};
     let currentUser = null;
     const adminCredentials = { username: "Admin", password: "Password0924" };
 
@@ -145,7 +208,6 @@
       if (users[username] && users[username] === password) {
         currentUser = username;
         alert(`${username}さん、ようこそ！`);
-        // ログイン後はホーム画面（難易度選択画面）へ遷移
         showScreen("home-screen");
       } else {
         alert("ユーザー名またはパスワードが間違っています。");
@@ -190,33 +252,25 @@
       showScreen("login-screen");
     }
 
-    // ゲーム・パズル機能
-    let gridSize = 4; // デフォルトの盤面サイズ（初期値は「Normal」用）
+    // ----- ゲーム・パズル機能 -----
+
+    let gridSize = 4; // 初期はNormal（4×4）; 3×3なら3、5×5なら5を指定
     let tiles = [];
     let emptyTileIndex;
     let timerInterval, startTime;
-    // ゲーム開始フラグ（スタートボタン押下前は false）
     let gameStarted = false;
 
-    // startGame()は難易度選択ボタンから呼ばれます
+    // startGame() は難易度選択ボタンから呼ばれる
     function startGame(size) {
       gridSize = size;
-      initializePuzzle();
-      // ゲーム画面に遷移。タイマーはスタートボタン押下時に開始する。
-      showScreen("game-screen");
-      // スタートボタンを表示し、ゲーム開始フラグをリセット
-      document.getElementById("start-btn").style.display = "block";
-      gameStarted = false;
-      resetTimer();
-    }
-
-    function initializePuzzle() {
-      // 1～(gridSize*gridSize - 1)の数値と空タイル(null)を用意
-      tiles = Array.from({ length: gridSize * gridSize - 1 }, (_, i) => i + 1).concat(null);
-      tiles = shuffle(tiles);
+      // 解ける状態の盤面を生成
+      tiles = generateSolvablePuzzle(gridSize);
       renderPuzzle();
       resetTimer();
-      document.getElementById("retry-btn").style.display = "none";
+      // ゲーム画面へ遷移、タイマーはスタートボタン押下まで開始しない
+      showScreen("game-screen");
+      document.getElementById("start-btn").style.display = "block";
+      gameStarted = false;
     }
 
     function renderPuzzle() {
@@ -224,6 +278,7 @@
       puzzle.innerHTML = "";
       puzzle.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`;
       puzzle.style.gridTemplateRows = `repeat(${gridSize}, 100px)`;
+      // 配列 tiles を走査してタイル要素を作成
       tiles.forEach((tile, index) => {
         const tileElement = document.createElement("div");
         tileElement.className = "tile";
@@ -232,7 +287,7 @@
           tileElement.classList.add("empty");
           emptyTileIndex = index;
         }
-        // タイルクリック時、ゲーム開始済みでない場合は何もしない
+        // スタート前はクリック無効（gameStartedがfalseなら何もしない）
         tileElement.addEventListener("click", () => {
           if (!gameStarted) return;
           moveTile(index);
@@ -241,16 +296,8 @@
       });
     }
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
     function moveTile(index) {
-      if (!gameStarted) return; // 追加チェック
+      if (!gameStarted) return;
       const row = Math.floor(index / gridSize);
       const col = index % gridSize;
       const emptyRow = Math.floor(emptyTileIndex / gridSize);
@@ -264,6 +311,7 @@
     }
 
     function isSolved() {
+      // ゴール状態：数字が 1 から (gridSize*gridSize - 1) の順序、最後が null
       for (let i = 0; i < tiles.length - 1; i++) {
         if (tiles[i] !== i + 1) return false;
       }
@@ -277,7 +325,9 @@
     }
 
     function retry() {
-      initializePuzzle();
+      // 同じ難易度で再生成
+      tiles = generateSolvablePuzzle(gridSize);
+      renderPuzzle();
       resetTimer();
       gameStarted = false;
       document.getElementById("start-btn").style.display = "block";
@@ -289,7 +339,7 @@
       document.getElementById("timer").textContent = "経過時間: 00:00";
     }
 
-    // スタートボタン押下でタイマー開始＆ゲーム開始フラグを true にする
+    // スタートボタン押下でタイマー開始＆タイル操作を有効化
     function startGameTimer() {
       startTime = Date.now();
       timerInterval = setInterval(() => {
@@ -302,7 +352,6 @@
       document.getElementById("start-btn").style.display = "none";
     }
 
-    // ゲーム画面の「ホームに戻る」はホーム画面（難易度選択画面）に遷移
     function goToHome() {
       clearInterval(timerInterval);
       showScreen("home-screen");
