@@ -48,6 +48,8 @@
       gap: 5px;
       margin-top: 20px;
       padding: 10px;
+      /* 初期状態はクリック無効 */
+      pointer-events: none;
     }
     button {
       margin: 5px;
@@ -194,7 +196,7 @@
     let tiles = [];
     let emptyTileIndex;
     let timerInterval, startTime;
-    // ゲーム開始フラグ。スタートボタンが押されるまでfalse
+    // ゲーム開始フラグ（今回は pointer-events で制御するので不要ですが、参照用に残しておきます）
     let gameStarted = false;
 
     // startGame()は難易度選択ボタンから呼ばれます
@@ -208,6 +210,8 @@
       gameStarted = false;
       // タイマーをリセットして表示更新
       resetTimer();
+      // パズル領域のクリックを無効にする
+      document.getElementById("puzzle").style.pointerEvents = "none";
     }
 
     function initializePuzzle() {
@@ -232,11 +236,9 @@
           tileElement.classList.add("empty");
           emptyTileIndex = index;
         }
-        // タイルのクリック処理：ゲーム開始フラグがtrueの場合のみ反応させる
+        // クリックイベントは pointer-events で制御しているため、ここでは通常の設定
         tileElement.addEventListener("click", () => {
-          if (gameStarted) {
-            moveTile(index);
-          }
+          moveTile(index);
         });
         puzzle.appendChild(tileElement);
       });
@@ -281,6 +283,8 @@
       resetTimer();
       gameStarted = false;
       document.getElementById("start-btn").style.display = "block";
+      // クリック無効状態に戻す
+      document.getElementById("puzzle").style.pointerEvents = "none";
     }
 
     function resetTimer() {
@@ -289,7 +293,7 @@
       document.getElementById("timer").textContent = "経過時間: 00:00";
     }
 
-    // スタートボタン押下でタイマー開始＆ゲーム開始フラグをtrueにする
+    // スタートボタン押下でタイマー開始＆パズルへのクリックを有効にする
     function startGameTimer() {
       startTime = Date.now();
       timerInterval = setInterval(() => {
@@ -299,6 +303,8 @@
         document.getElementById("timer").textContent = `経過時間: ${minutes}:${seconds}`;
       }, 1000);
       gameStarted = true;
+      // クリック有効化
+      document.getElementById("puzzle").style.pointerEvents = "auto";
       document.getElementById("start-btn").style.display = "none";
     }
 
