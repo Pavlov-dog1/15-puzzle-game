@@ -194,6 +194,8 @@
     let tiles = [];
     let emptyTileIndex;
     let timerInterval, startTime;
+    // ゲーム開始フラグ。スタートボタンが押されるまでfalse
+    let gameStarted = false;
 
     // startGame()は難易度選択ボタンから呼ばれます
     function startGame(size) {
@@ -201,8 +203,9 @@
       initializePuzzle();
       // ゲーム画面に遷移するが、タイマーはスタートボタン押下時に開始する
       showScreen("game-screen");
-      // スタートボタンを表示する
+      // スタートボタンを表示し、ゲーム開始フラグをリセット
       document.getElementById("start-btn").style.display = "block";
+      gameStarted = false;
       // タイマーをリセットして表示更新
       resetTimer();
     }
@@ -229,7 +232,12 @@
           tileElement.classList.add("empty");
           emptyTileIndex = index;
         }
-        tileElement.addEventListener("click", () => moveTile(index));
+        // タイルのクリック処理：ゲーム開始フラグがtrueの場合のみ反応させる
+        tileElement.addEventListener("click", () => {
+          if (gameStarted) {
+            moveTile(index);
+          }
+        });
         puzzle.appendChild(tileElement);
       });
     }
@@ -271,7 +279,7 @@
     function retry() {
       initializePuzzle();
       resetTimer();
-      // スタートボタンを再表示
+      gameStarted = false;
       document.getElementById("start-btn").style.display = "block";
     }
 
@@ -281,9 +289,8 @@
       document.getElementById("timer").textContent = "経過時間: 00:00";
     }
 
-    // スタートボタン押下でタイマー開始
+    // スタートボタン押下でタイマー開始＆ゲーム開始フラグをtrueにする
     function startGameTimer() {
-      // タイマーを開始
       startTime = Date.now();
       timerInterval = setInterval(() => {
         const elapsedTime = Date.now() - startTime;
@@ -291,7 +298,7 @@
         const seconds = String(Math.floor((elapsedTime % 60000) / 1000)).padStart(2, "0");
         document.getElementById("timer").textContent = `経過時間: ${minutes}:${seconds}`;
       }, 1000);
-      // スタートボタンを非表示にする
+      gameStarted = true;
       document.getElementById("start-btn").style.display = "none";
     }
 
