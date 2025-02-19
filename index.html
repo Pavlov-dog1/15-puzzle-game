@@ -323,6 +323,16 @@
       document.getElementById("retry-btn").style.display = "block";
       alert(`おめでとうございます！クリアタイム: ${document.getElementById("timer").textContent}`);
     }
+    function endGame() {
+      clearInterval(timerInterval);
+      // 最後の手を実行した瞬間のタイムを保持
+      const finalTime = document.getElementById("timer").textContent;
+      // 最新の盤面（最終状態）を再描画
+      renderPuzzle();
+      document.getElementById("retry-btn").style.display = "block";
+      alert(`おめでとうございます！クリアタイム: ${finalTime}`);
+    }
+
 
     function retry() {
       // 同じ難易度で再生成
